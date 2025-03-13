@@ -160,7 +160,7 @@ std::vector<double> genetic_alg(const std::function<double(std::vector<double>)>
 /// <param name="max_iter"></param>
 /// <returns></returns>
 vector<double> nelder_mead(const function<double(vector<double>)> f, const vector<double> x0,const double l,const double eps,
-	const double alpha = 1.0,const double gamma = 2.0, const double rho = 0.5, const double sigma = 0.5, const int max_iter = 100);
+	const double alpha = 1.0,const double gamma = 2.0, const double rho = 0.5, const double sigma = 0.5, const int max_iter = 200);
 
 #endif // !ALGTHS_H
 

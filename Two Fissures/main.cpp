@@ -6,6 +6,9 @@
 
 using namespace std;
 
+double x1, x2;
+cx_double u1, u2;
+
 vector<cx_double> true_u;
 vector<double> view_points;
 
@@ -37,14 +40,11 @@ double resid_func(vector<double> coordinates) {
 	f.set_coordinates(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
 	f.solve_xi();
 	f.fill_u_sigma();
+	auto cur_u1 = f.number_field(x1);
+	auto cur_u2 = f.number_field(x2);
 
-	double res = 0;
-	for (size_t i = 0; i < view_points.size(); i++)
-	{
-		cx_double cur_u = f.number_field(view_points[i]);
-		res += (pow(cur_u.real() - true_u[i].real(), 2) + pow(cur_u.imag() - true_u[i].imag(), 2)) * 100;
-	}
-	return res;
+	return (pow(cur_u1.real() - u1.real(), 2) + pow(cur_u2.real() - u2.real(), 2)) * 100 +
+		(pow(cur_u1.imag() - u1.imag(), 2) + pow(cur_u2.imag() - u2.imag(), 2)) * 100;
 }
 
 void field_grahp(Fissures f, string file_name) {
@@ -167,12 +167,13 @@ void find_coordinates() {
 	system("pause");
 }
 
-void Minimize_with_Nelder_Mid(Fissures f, vector<double> point, double eps, double l) {
+void Minimize_with_Nelder_Mid(Fissures f, const vector<double> point, const double eps, const double l) {
 	
 	f.fill_k3_integral();
 	f.solve_xi();
 	f.fill_u_sigma();
-	true_u = { f.number_field(view_points[0]), f.number_field(view_points[1])};
+	//true_u = { f.number_field(view_points[0]), f.number_field(view_points[1])};
+	u1 = f.number_field(x1); u2 = f.number_field(x2);
 	auto start_time = std::chrono::high_resolution_clock::now();
 	cout << resid_func(point) << endl;
 	auto res = nelder_mead(resid_func, point, l, eps);
@@ -279,9 +280,9 @@ int main() {
 	Fissures f = Fissures();
 	double l1, l2, d1, d2;
 	l1 = 0.1;
-	d1 = 0.5;
+	d1 = 0.0;
 	l2 = 0.1;
-	d2 = 1.0;
+	d2 = 0.0;
 	f.set_coordinates(l1, d1, l2, d2);
 	/*vector<double> roof = { 0.2, 3.0, 0.2, 3.0 };
 	vector<double> floor = { 0.0, 0.0, 0.0, 0.0 };
@@ -295,7 +296,9 @@ int main() {
 		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");*/
 
 	view_points = { 2.0, 2.7 };
-	Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864}, 1e-7, 0.1);
+	x1 = 2.0;
+	x2 = 2.7;
+	Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864}, 1e-8, 0.01);
 
 	return 0;
 }

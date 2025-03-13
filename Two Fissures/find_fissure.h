@@ -47,6 +47,7 @@ public:
 
 	cx_double number_field(const double x);
 	void fill_u_sigma();
+	void fill_sigma2_alpha();
 	cx_double alpha_x3_rj(const cx_double r);
 };
 
