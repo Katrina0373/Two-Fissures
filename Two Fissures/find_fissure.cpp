@@ -8,6 +8,9 @@ using namespace arma;
 using namespace std::complex_literals;
 
 std::vector<double> Fissures::k3_integral;
+arma::cx_vec Fissures::sigma2_alpha;
+arma::cx_vec Fissures::roots_sigma2;
+size_t Fissures::N1;
 double (*mu)(double) = { [](double x) {return
 		1 + std::pow(x, 2) / 10; } };
 
@@ -131,17 +134,18 @@ void Fissures::fill_F(cx_vec& F1, cx_vec& F2) {
 	auto F = [this](double x) {
 		cx_double sum = 0;
 		double sign = x > 0 ? 1 : -1;
-
-		for (size_t i = 0; i < N1 - 1; i++)
+		
+		for (size_t i = 0; i < N1; i++)
 		{
 			if (sign == 1)
 				sum += exp(roots_sigma2(i) * abs(x) * 1.i) / sigma2_alpha(N1 + i);
 			else 
 				sum += exp(roots_sigma2(i) * abs(x) * 1.i) / sigma2_alpha(i);
-
+			//cout << sum << endl;
 		}
-
-		return sign * p * 2 * datum::pi * sum * 1.i;
+		
+		cx_double res = sign * p * 2 * datum::pi * sum * 1.i;
+		return res;
 	};
 
 
@@ -151,8 +155,9 @@ void Fissures::fill_F(cx_vec& F1, cx_vec& F2) {
 		double x2 = d2 + l2 * t0[i];
 		F1(i) = F(x1);
 		F2(i) = F(x2);
+		
 	}
-	cout << F1 << endl;
+
 }
 
 void Fissures::fill_k3_integral()
@@ -161,7 +166,7 @@ void Fissures::fill_k3_integral()
 	size_t steps = alphaM / h;
 	k3_integral.resize(steps);
 	
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int i = 0; i < steps; i++)
 	{
 		double alpha = h / 2 + i * h;
@@ -264,7 +269,7 @@ void Fissures::fill_u_sigma()
 	}
 
 }
-//для всех моделей с одинаковым k эти значения одни и те же
+//для всех моделей с одинаковым k значения sigma2_alpha одни и те же
 void Fissures::fill_sigma2_alpha() {
 	vec roots_sigma2re(find_ratio_roots(k, 0, 100, 0.1, 1.0e-8, 1000));
 	roots_sigma2.resize(roots_sigma2re.size());
@@ -274,8 +279,6 @@ void Fissures::fill_sigma2_alpha() {
 	}
 	roots_sigma2 = join_cols(roots_sigma2, find_complex_roots(0, 100, 1.0e-8, k, 300, 0.1));
 	N1 = roots_sigma2.size();
-	
-	cout << roots_sigma2 << endl;
 
 	sigma2_alpha.resize(2 * N1);
 	for (int i = 0; i < N1; i++)

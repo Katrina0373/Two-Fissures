@@ -16,7 +16,9 @@ public:
 	int N, p;
 	vec t;
 	vec t0;
-	cx_vec roots_sigma2, xi;
+	static cx_vec roots_sigma2;
+	cx_vec xi;
+	static cx_vec sigma2_alpha;
 	//äëÿ ìàòğèöû Areg
 	static std::vector<double> k3_integral;
 	double alphaM;
@@ -42,8 +44,7 @@ public:
 	//==========================ÎÁĞÀÒÍÀß ÇÀÄÀ×À============================
 	
 	cx_vec sigma2, sigma1, u1, u2;
-	cx_vec sigma2_alpha;
-	size_t N1;
+	static size_t N1;
 
 	cx_double number_field(const double x);
 	void fill_u_sigma();
