@@ -37,19 +37,20 @@ double resid_func(vector<double> coordinates) {
 	f.set_coordinates(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
 	f.solve_xi();
 	f.fill_u_sigma();
-
 	double res = 0;
 	for (size_t i = 0; i < view_points.size(); i++)
 	{
-		cx_double cur_u = f.number_field(view_points[i]);
-		res += (pow(cur_u.real() - true_u[i].real(), 2) + pow(cur_u.imag() - true_u[i].imag(), 2)) * 100;
+		auto cur_u = f.number_field(view_points[i]);
+		res += pow(cur_u.real() - true_u[i].real(), 2) * 100 + pow(cur_u.imag() - true_u[i].imag(), 2) * 100;
 	}
+
 	return res;
 }
 
 void field_grahp(Fissures f, string file_name) {
 	//график для поля
 	f.fill_k3_integral();
+	f.fill_sigma2_alpha();
 	f.solve_xi();
 	f.fill_u_sigma();
 	auto x = arma::linspace(0.0, 10.0, 1000);
@@ -72,6 +73,7 @@ void four_fields() {
 	f.set_coordinates(l1, d1, l2, d2);
 
 	f.fill_k3_integral();
+	f.fill_sigma2_alpha();
 	f.solve_xi();
 	f.fill_u_sigma();
 
@@ -144,6 +146,7 @@ void find_coordinates() {
 	Fissures f;
 	f.set_coordinates(l1, d1, l2, d2);
 	f.fill_k3_integral();
+	f.fill_sigma2_alpha();
 	f.solve_xi();
 	f.fill_u_sigma();
 	cout << "Задайте значения x1, x2 для поля смещения\nx1 = ";
@@ -167,14 +170,16 @@ void find_coordinates() {
 	system("pause");
 }
 
-void Minimize_with_Nelder_Mid(Fissures f, vector<double> point, double eps, double l) {
+void Minimize_with_Nelder_Mid(Fissures f, const vector<double> point, const double eps, const double l) {
 	
 	f.fill_k3_integral();
+	f.fill_sigma2_alpha();
 	f.solve_xi();
 	f.fill_u_sigma();
 	true_u = { f.number_field(view_points[0]), f.number_field(view_points[1])};
-	auto start_time = std::chrono::high_resolution_clock::now();
 	cout << resid_func(point) << endl;
+	auto start_time = std::chrono::high_resolution_clock::now();
+	//cout << resid_func({ f.l1, f.d1, f.l2, f.d2 }) << endl;
 	auto res = nelder_mead(resid_func, point, l, eps);
 	auto end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end_time - start_time;
@@ -193,10 +198,11 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	const vector<double> floor, const vector<double> roof, const double eps1,
 	const double eps2, const double l,
 	string field_file_name, string report_file_name
-	) {
+) {
 
 	Fissures f = Fissures(l1, l2, d1, d2, 20, k);
 	f.fill_k3_integral();
+	f.fill_sigma2_alpha();
 	f.solve_xi();
 	f.fill_u_sigma();
 	auto x = arma::linspace(0.0, 10.0, 1000);
@@ -212,6 +218,8 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	for (size_t i = 0; i < view_points.size(); i++)
 		true_u[i] = f.number_field(view_points[i]);
 
+	//cout << resid_func({ 0.0998931, 0.499328, 0.100106, 0.999252 }) << endl;
+	//return;
 	//находим с помощью генетического
 	cout << "Начало работы генетического алгоритма" << endl;
 	auto start_time = std::chrono::high_resolution_clock::now();
@@ -283,19 +291,50 @@ int main() {
 	l2 = 0.1;
 	d2 = 1.0;
 	f.set_coordinates(l1, d1, l2, d2);
-	/*vector<double> roof = { 0.2, 3.0, 0.2, 3.0 };
+	vector<double> roof = { 0.1, 3.0, 0.1, 3.0 };
 	vector<double> floor = { 0.0, 0.0, 0.0, 0.0 };
 	double k = 5, l = 0.1;
 	double eps1 = 0.0000001, eps2 = 0.0000000001;
-	view_points = { 3.9, 6.0, 7.5 };
+	view_points = { 2.0, 2.7 };
 	
 
-	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
+	/*task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
 		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
 		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");*/
 
-	view_points = { 2.0, 2.7 };
-	Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864}, 1e-7, 0.1);
+	//view_points = { 2.0, 2.7 };
+	
+	
+	/*f.fill_k3_integral();
+	f.fill_sigma2_alpha();
+	f.solve_xi();
+	f.fill_u_sigma();
+	true_u = { f.number_field(view_points[0]), f.number_field(view_points[1]) };
+	for (size_t i = 0; i < 4; i++) {
+		for (size_t j = 0; j < 10; j++)
+		{
+			switch (i)
+			{
+			case 0:
+				l1 = 0.1 + j * 0.01;
+				break;
+			case 1:
+				d1 = 0.5 + j * 0.01;
+				break;
+			case 2:
+				l2 = 0.1 + j * 0.01;
+				break;
+			case 3:
+				d2 = 1 + j * 0.01;
+				break;
+			default:
+				break;
+			}
+			printf("l1 = %.5f, d1 = %.5f, l2 = %.5f, d2 = %.5f, resid_fun = %.5f\n", l1, d1, l2, d2, resid_func({l1, d1, l2, d2}));
+			l1 = 0.1; d1 = 0.5; l2 = 0.1; d2 = 1;
+		}
+	}*/
+	Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864 }, 1e-8, 0.1);
 
 	return 0;
 }

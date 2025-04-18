@@ -891,6 +891,10 @@ vector<double> avg_gens(const vector<double> x1, const vector<double> x2) {
 	return sum;
 }
 
+vector<double> avg_gen(const vector<double> x1, const vector<double > x2) {
+	return vector<double>();
+}
+
 //—крещивание и формирование новой попул€ции
 vector<vector<double>> crossover(const vector<vector<double>> p, const double eps, const vector<double> x0, const vector<double> x1, const int iter, const int max_iter)	{
 	int k = p.size()-1, n = p.size();

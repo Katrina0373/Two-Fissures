@@ -16,7 +16,9 @@ public:
 	int N, p;
 	vec t;
 	vec t0;
-	cx_vec roots_sigma2, xi;
+	static cx_vec roots_sigma2;
+	cx_vec xi;
+	static cx_vec sigma2_alpha;
 	//äëÿ ìàòðèöû Areg
 	static std::vector<double> k3_integral;
 	double alphaM;
@@ -33,7 +35,7 @@ public:
 	void fill_F(cx_vec& F1, cx_vec& F2);
 	void fill_k3_integral();
 	double k3reg(const double x1, const double x2);
-	double k3reg1(const double x1,const double x2, vec k3_integral,const double widht);
+	double k3reg1(const double x1,const double x2);
 	double k3(const double alpha);
 
 	cx_vec solve_xi();
@@ -42,12 +44,12 @@ public:
 	//==========================ÎÁÐÀÒÍÀß ÇÀÄÀ×À============================
 	
 	cx_vec sigma2, sigma1, u1, u2;
-	cx_vec sigma2_alpha;
-	size_t N1;
+	static size_t N1;
 
 	cx_double number_field(const double x);
 	void fill_u_sigma();
-	cx_double alpha_x3_rj(const cx_double r);
+	void fill_sigma2_alpha();
+	cx_double alpha_x3_rj(const double r);
 };
 
 
