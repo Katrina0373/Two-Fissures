@@ -6,9 +6,6 @@
 
 using namespace std;
 
-double x1, x2;
-cx_double u1, u2;
-
 vector<cx_double> true_u;
 vector<double> view_points;
 
@@ -40,8 +37,6 @@ double resid_func(vector<double> coordinates) {
 	f.set_coordinates(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
 	f.solve_xi();
 	f.fill_u_sigma();
-	auto cur_u1 = f.number_field(x1);
-	auto cur_u2 = f.number_field(x2);
 	double res = 0;
 	for (size_t i = 0; i < view_points.size(); i++)
 	{
@@ -181,10 +176,10 @@ void Minimize_with_Nelder_Mid(Fissures f, const vector<double> point, const doub
 	f.fill_sigma2_alpha();
 	f.solve_xi();
 	f.fill_u_sigma();
-	//true_u = { f.number_field(view_points[0]), f.number_field(view_points[1])};
-	u1 = f.number_field(x1); u2 = f.number_field(x2);
+	true_u = { f.number_field(view_points[0]), f.number_field(view_points[1])};
+	cout << resid_func(point) << endl;
 	auto start_time = std::chrono::high_resolution_clock::now();
-	cout << resid_func({ f.l1, f.d1, f.l2, f.d2 }) << endl;
+	//cout << resid_func({ f.l1, f.d1, f.l2, f.d2 }) << endl;
 	auto res = nelder_mead(resid_func, point, l, eps);
 	auto end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end_time - start_time;
@@ -223,7 +218,8 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	for (size_t i = 0; i < view_points.size(); i++)
 		true_u[i] = f.number_field(view_points[i]);
 
-	cout << resid_func({-2.45002e-05, 1.393, 4.36957e-05, 0.162237}) << endl;
+	//cout << resid_func({ 0.0998931, 0.499328, 0.100106, 0.999252 }) << endl;
+	//return;
 	//находим с помощью генетического
 	cout << "Начало работы генетического алгоритма" << endl;
 	auto start_time = std::chrono::high_resolution_clock::now();
@@ -290,30 +286,55 @@ int main() {
 	
 	Fissures f = Fissures();
 	double l1, l2, d1, d2;
-	l1 = 0.05;
-	d1 = 1.5;
-	l2 = 0.05;
-	d2 = 1.75;
+	l1 = 0.1;
+	d1 = 0.5;
+	l2 = 0.1;
+	d2 = 1.0;
 	f.set_coordinates(l1, d1, l2, d2);
-	vector<double> roof = { 0.2, 3.0, 0.2, 3.0 };
+	vector<double> roof = { 0.1, 3.0, 0.1, 3.0 };
 	vector<double> floor = { 0.0, 0.0, 0.0, 0.0 };
 	double k = 5, l = 0.1;
 	double eps1 = 0.0000001, eps2 = 0.0000000001;
-	view_points = { 3.9, 6.0 };
+	view_points = { 2.0, 2.7 };
 	
 
-	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
+	/*task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
 		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
-		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");
+		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");*/
 
-	/*view_points = { 2.0, 2.7 };
-	x1 = 2.0;
-	x2 = 2.7;
-	*/
-	//true_u = { f.number_field(view_points[0]), f.number_field(view_points[1])};
+	//view_points = { 2.0, 2.7 };
 	
-
-	//Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864}, 1e-8, 0.1);
+	
+	/*f.fill_k3_integral();
+	f.fill_sigma2_alpha();
+	f.solve_xi();
+	f.fill_u_sigma();
+	true_u = { f.number_field(view_points[0]), f.number_field(view_points[1]) };
+	for (size_t i = 0; i < 4; i++) {
+		for (size_t j = 0; j < 10; j++)
+		{
+			switch (i)
+			{
+			case 0:
+				l1 = 0.1 + j * 0.01;
+				break;
+			case 1:
+				d1 = 0.5 + j * 0.01;
+				break;
+			case 2:
+				l2 = 0.1 + j * 0.01;
+				break;
+			case 3:
+				d2 = 1 + j * 0.01;
+				break;
+			default:
+				break;
+			}
+			printf("l1 = %.5f, d1 = %.5f, l2 = %.5f, d2 = %.5f, resid_fun = %.5f\n", l1, d1, l2, d2, resid_func({l1, d1, l2, d2}));
+			l1 = 0.1; d1 = 0.5; l2 = 0.1; d2 = 1;
+		}
+	}*/
+	Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864 }, 1e-8, 0.1);
 
 	return 0;
 }

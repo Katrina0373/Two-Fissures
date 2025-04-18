@@ -150,15 +150,15 @@ std::vector<double> genetic_alg(const std::function<double(std::vector<double>)>
 /// <summary>
 /// Метод Нелдера-Мида
 /// </summary>
-/// <param name="f"></param>
-/// <param name="x0"></param>
-/// <param name="l"></param>
-/// <param name="alpha"></param>
-/// <param name="gamma"></param>
+/// <param name="f">- функция минимизации</param>
+/// <param name="x0">- начальная точка</param>
+/// <param name="l">- длина симплекса</param>
+/// <param name="alpha">- отражение</param>
+/// <param name="gamma">- растежение</param>
 /// <param name="rho"></param>
-/// <param name="sigma"></param>
-/// <param name="max_iter"></param>
-/// <returns></returns>
+/// <param name="sigma">- сжатие</param>
+/// <param name="max_iter">- максимальное количество итераций</param>
+/// <returns>точка минимума функции</returns>
 vector<double> nelder_mead(const function<double(vector<double>)> f, const vector<double> x0,const double l,const double eps,
 	const double alpha = 1.0,const double gamma = 2.0, const double rho = 0.5, const double sigma = 0.5, const int max_iter = 200);
 

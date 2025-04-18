@@ -35,7 +35,7 @@ public:
 	void fill_F(cx_vec& F1, cx_vec& F2);
 	void fill_k3_integral();
 	double k3reg(const double x1, const double x2);
-	double k3reg1(const double x1,const double x2, vec k3_integral,const double widht);
+	double k3reg1(const double x1,const double x2);
 	double k3(const double alpha);
 
 	cx_vec solve_xi();
@@ -49,7 +49,7 @@ public:
 	cx_double number_field(const double x);
 	void fill_u_sigma();
 	void fill_sigma2_alpha();
-	cx_double alpha_x3_rj(const cx_double r);
+	cx_double alpha_x3_rj(const double r);
 };
 
 
