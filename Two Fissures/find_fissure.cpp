@@ -61,19 +61,19 @@ void Fissures::fill_Areg(mat& A11, mat& A21, mat& A12, mat& A22) {
 	{
 			for (int j = 0; j < N; j++)
 			{
-				A11(i, j) = k3reg1(
+				A11(i, j) = k3reg(
 					l1 * (t[i + 1] - t0[j]),
 					l1 * (t[i] - t0[j]));
 
-				A21(i, j) = k3reg1(
+				A21(i, j) = k3reg(
 					d2 + l2 * t[i + 1] - d1 - l1 * t0[j],
 					d2 + l2 * t[i] - d1 - l1 * t0[j]);
 
-				A12(i, j) = k3reg1(
+				A12(i, j) = k3reg(
 					d1 + l1 * t[i + 1] - d2 - l2 * t0[j],
 					d1 + l1 * t[i] - d2 - l2 * t0[j]);
 
-				A22(i, j) = k3reg1(
+				A22(i, j) = k3reg(
 					l2 * (t[i + 1] - t0[j]),
 					l2 * (t[i] - t0[j]));
 			}
@@ -92,24 +92,25 @@ double Fissures::k3reg(const double x1, const double x2) {
 			(sin(alpha * x1) - sin(alpha * x2));
 	};
 
-	for (size_t i = 0; i < k3_integral.size(); i++)
+	double step = h / 2 + h*20;
+	for (size_t i = 20; i < k3_integral.size(); i++)
 	{
-		integral += Dij(h / 2 + h * i, i);
+		integral += Dij(step, i);
+		step += h;
 	}
 
 	return 2 * h * integral;
 }
 
-//ТУТ НЕ ВСЁ В ПОРЯДКЕ???
 double Fissures::k3reg1(const double y1, const double y2) {
 
 	double width = alphaM / k3_integral.size();
 
 	auto Dij = [y1, y2, this](double alpha, int i) {
 		double osc = sin(alpha * y1) - sin(alpha * y2);
-		cout << alpha << " " << osc << endl;
-		return (k3_integral[i] - k30 * abs(alpha)) / alpha *		//в рамках оптимизации структура k3(alpha, 0) вычисляется отдельно
-			osc;
+		//cout << alpha << " " << osc << endl;
+		return k3_integral[i] * osc;		//в рамках оптимизации структура k3(alpha, 0) вычисляется отдельно
+		
 	};
 
 	double simpson_integral = 0;
@@ -128,8 +129,8 @@ double Fissures::k3reg1(const double y1, const double y2) {
 
 //x = 1
 double Fissures::k3(const double alpha) {
-	double sigma1 = RungeKutta1(alpha, 0, 1, 0, 1, k, 0.0001);
-	double sigma2 = RungeKutta1(alpha, 0, 0, 1, 1, k, 0.0001);
+	double sigma1 = RungeKutta1(alpha, 0, 1, 0, 1, k, 0.00001);
+	double sigma2 = RungeKutta1(alpha, 0, 0, 1, 1, k, 0.00001);
 	return -sigma1 / sigma2;
 }
 
@@ -147,9 +148,9 @@ void Fissures::fill_F(cx_vec& F1, cx_vec& F2) {
 		for (size_t i = 0; i < N1; i++)
 		{
 			if (sign == 1)
-				sum += exp(roots_sigma2(i) * abs(x) * 1.i) / sigma2_alpha(N1 + i);
+				sum += exp(roots_sigma2(i) * x * 1.i) / sigma2_alpha(N1 + i);
 			else 
-				sum += exp(roots_sigma2(i) * abs(x) * 1.i) / sigma2_alpha(i);
+				sum += exp(roots_sigma2(i) * -x * 1.i) / sigma2_alpha(i);
 			//cout << sum << endl;
 		}
 		
@@ -160,10 +161,8 @@ void Fissures::fill_F(cx_vec& F1, cx_vec& F2) {
 
 	for (int i = 0; i < N; i++)
 	{
-		double x1 = d1 + l1 * t0[i];
-		double x2 = d2 + l2 * t0[i];
-		F1(i) = F(x1);
-		F2(i) = F(x2);
+		F1(i) = F(d1 + l1 * t0[i]);
+		F2(i) = F(d2 + l2 * t0[i]);
 		
 	}
 
@@ -332,7 +331,6 @@ Fissures::Fissures()
 	l1 = 0.1; l2 = 0.1;
 	d1 = 0.5; d2 = 1;
 	N = 20; k = 5; p = 1;
-	alphaM = 400;
 	fill_t();
 	k30 = solve_k30();
 }
@@ -346,7 +344,6 @@ Fissures::Fissures(double l1, double l2, double d1, double d2, int N, double k, 
 	this->k = k;
 	this->N = N;
 	this->p = p;
-	alphaM = 400;
 	fill_t();
 	k30 = solve_k30();
 }

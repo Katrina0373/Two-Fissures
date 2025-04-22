@@ -265,9 +265,9 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	file << "l2 = " << res2[2] << endl;
 	file << "d2 = " << res2[3] << endl;
 	file << "Доп. информация: " << endl;
-	file << "Точки наблюдения ";
+	file << "Точки наблюдения:";
 	for (size_t i = 0; i < view_points.size(); i++)
-		file << "x" << i + 1 << " = " << view_points[i];
+		file << " x" << i + 1 << " = " << view_points[i];
 	file << endl;
 	file << "Нижний порог параметров: " << floor[0] << ", " << floor[1] << ", " << floor[2] << ", " << floor[3] << endl;
 	file << "Верхний порог параметров: " << roof[0] << ", " << roof[1] << ", " << roof[2] << ", " << roof[3] << endl;
@@ -298,9 +298,9 @@ int main() {
 	view_points = { 2.0, 2.7 };
 	
 
-	/*task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
-		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
-		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");*/
+	//task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
+	//	std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
+	//	"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");
 
 	//view_points = { 2.0, 2.7 };
 	
