@@ -10,6 +10,7 @@ using namespace std::complex_literals;
 std::vector<double> Fissures::k3_integral;
 arma::cx_vec Fissures::sigma2_alpha;
 arma::cx_vec Fissures::roots_sigma2;
+arma::cx_vec Fissures::sigma1, Fissures::sigma2, Fissures::u1, Fissures::u2;
 size_t Fissures::N1;
 double (*mu)(double) = { [](double x) {return
 		1 + std::pow(x, 2) / 10; } };
@@ -88,12 +89,11 @@ double Fissures::k3reg(const double x1, const double x2) {
 	double h = alphaM / k3_integral.size();
 	double integral = 0;
 	auto Dij = [x1, x2, this](double alpha, size_t i) {
-		return k3_integral[i] *		//в рамках оптимизации структура k3(alpha, 0) вычисляется отдельно
-			(sin(alpha * x1) - sin(alpha * x2));
+		return k3_integral[i] *	(sin(alpha * x1) - sin(alpha * x2));
 	};
 
-	double step = h / 2 + h*20;
-	for (size_t i = 20; i < k3_integral.size(); i++)
+	double step = h / 2 + h * 0;
+	for (size_t i = 0; i < k3_integral.size(); i++)
 	{
 		integral += Dij(step, i);
 		step += h;
@@ -107,21 +107,23 @@ double Fissures::k3reg1(const double y1, const double y2) {
 	double width = alphaM / k3_integral.size();
 
 	auto Dij = [y1, y2, this](double alpha, int i) {
-		double osc = sin(alpha * y1) - sin(alpha * y2);
-		//cout << alpha << " " << osc << endl;
-		return k3_integral[i] * osc;		//в рамках оптимизации структура k3(alpha, 0) вычисляется отдельно
+		
+		return k3_integral[i] * (sin(alpha * y1) - sin(alpha * y2));
 		
 	};
 
 	double simpson_integral = 0;
-	int num = 0;
-	for (int step = 0; step < k3_integral.size(); step++) {
-		if (step % 100 == 0)
-			num = step;
-		const double x1 = width / 2 + step * width;
-		const double x2 = width / 2 + (step + 1) * width;
-		//cout << x1 << " " << Dij(x1, step) << endl;
-		simpson_integral += (x2 - x1) / 6.0 * (Dij(x1, step) + 4.0 * Dij(0.5 * (x1 + x2), step) + Dij(x2, step+1));
+	
+	int start = 20;
+	double x1 = width / 2 + start * width;
+	double x2 = width / 2 + (start + 1) * width;
+	double x3 = (x2 - x2) / 2;
+
+	for (int step = start; step < k3_integral.size(); step++) {
+		simpson_integral += width / 6.0 * (Dij(x1, step) + 4.0 * Dij(x3, step) + Dij(x2, step + 1));
+		x1 += width;
+		x2 += width;
+		x3 += width;
 	}
 
 	return simpson_integral;
@@ -221,9 +223,9 @@ cx_vec Fissures::solve_xi()
 		for (size_t j = 0; j < N; j++)
 		{
 			A(i, j) = Ac11(j, i) / l1 + l1 * Areg11(j, i);
-			A(i, N + j) = l2 * Ac21(j, i) +l2 * Areg21(j, i);
-			A(i + N, j) = l1 * Ac12(j, i) +l1 * Areg12(j, i);
-			A(i + N, j + N) = Ac22(j, i) / l2 +l2 * Areg22(j, i);
+			A(i, N + j) = l2 * Ac21(j, i) + l2 * Areg21(j, i);
+			A(i + N, j) = l1 * Ac12(j, i) + l1 * Areg12(j, i);
+			A(i + N, j + N) = Ac22(j, i) / l2 + l2 * Areg22(j, i);
 		}
 		B(i) = F1(i);
 		B(i + N) = F2(i);
@@ -318,6 +320,13 @@ cx_double Fissures::alpha_x3_rj(const double r)
 		}
 		return -2 * datum::pi * sum * 1.i;
 	}
+}
+
+void Fissures::eval_static_vecs()
+{
+	fill_k3_integral();
+	fill_sigma2_alpha();
+	fill_u_sigma();
 }
 
 void Fissures::fill_t()

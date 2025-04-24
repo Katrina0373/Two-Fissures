@@ -93,9 +93,6 @@ double RungeKutta1(const double alpha, const double x0, const double U1_0, const
         U1 += (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
         Sigma1 += (l1 + 2.0 * l2 + 2.0 * l3 + l4) / 6.0;
 
-        if (abs(x - 0.5) < 0.001)
-            int num = 10;
-
         x += h;
     }
 

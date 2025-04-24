@@ -36,7 +36,6 @@ double resid_func(vector<double> coordinates) {
 	Fissures f = Fissures();
 	f.set_coordinates(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
 	f.solve_xi();
-	f.fill_u_sigma();
 	double res = 0;
 	for (size_t i = 0; i < view_points.size(); i++)
 	{
@@ -49,10 +48,8 @@ double resid_func(vector<double> coordinates) {
 
 void field_grahp(Fissures f, string file_name) {
 	//график для поля
-	f.fill_k3_integral();
-	f.fill_sigma2_alpha();
+	f.eval_static_vecs();
 	f.solve_xi();
-	f.fill_u_sigma();
 	auto x = arma::linspace(0.0, 10.0, 1000);
 	cx_vec u_vals(x.size());
 	for (size_t i = 0; i < x.size(); i++)
@@ -72,10 +69,8 @@ void four_fields() {
 	d2 = 1.0;
 	f.set_coordinates(l1, d1, l2, d2);
 
-	f.fill_k3_integral();
-	f.fill_sigma2_alpha();
+	f.eval_static_vecs();
 	f.solve_xi();
-	f.fill_u_sigma();
 
 	auto x = arma::linspace(0.0, 10.0, 2000);
 	std::ofstream file("D:/VS Projects/Two Fissures/results/three_fields.csv");
@@ -92,7 +87,6 @@ void four_fields() {
 
 	f.l1 = 0.05;
 	f.solve_xi();
-	f.fill_u_sigma();
 	file << f.l1 << endl;
 	for (size_t i = 0; i < x.size(); i++)
 		file << f.number_field(x(i)).real() << ';';
@@ -100,7 +94,6 @@ void four_fields() {
 
 	f.l1 = 0.1;
 	f.solve_xi();
-	f.fill_u_sigma();
 	file << f.l1 << endl;
 	for (size_t i = 0; i < x.size(); i++)
 		file << f.number_field(x(i)).real() << ';';
@@ -145,10 +138,8 @@ void find_coordinates() {
 
 	Fissures f;
 	f.set_coordinates(l1, d1, l2, d2);
-	f.fill_k3_integral();
-	f.fill_sigma2_alpha();
+	f.eval_static_vecs();
 	f.solve_xi();
-	f.fill_u_sigma();
 	cout << "Задайте значения x1, x2 для поля смещения\nx1 = ";
 	double xx1, xx2;
 	cin >> xx1;
@@ -172,10 +163,8 @@ void find_coordinates() {
 
 void Minimize_with_Nelder_Mid(Fissures f, const vector<double> point, const double eps, const double l) {
 	
-	f.fill_k3_integral();
-	f.fill_sigma2_alpha();
+	f.eval_static_vecs();
 	f.solve_xi();
-	f.fill_u_sigma();
 	true_u = { f.number_field(view_points[0]), f.number_field(view_points[1])};
 	cout << resid_func(point) << endl;
 	auto start_time = std::chrono::high_resolution_clock::now();
@@ -201,10 +190,8 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 ) {
 
 	Fissures f = Fissures(l1, l2, d1, d2, 20, k);
-	f.fill_k3_integral();
-	f.fill_sigma2_alpha();
+	f.eval_static_vecs();
 	f.solve_xi();
-	f.fill_u_sigma();
 	auto x = arma::linspace(0.0, 10.0, 1000);
 	//Вычисляем поле
 	cx_vec u_vals(x.size());
@@ -213,6 +200,16 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 		u_vals(i) = f.number_field(x(i));
 	}
 	write_to_file(u_vals, f.l1, f.d1, f.l2, f.d2, f.k, field_file_name);
+
+	cout << "Введите точки наблюдения: ";
+	view_points.clear();
+	while (true) {
+		double a;
+		cin >> a;
+		if (a == 0)
+			break;
+		view_points.push_back(a);
+	}
 
 	true_u.resize(view_points.size());
 	for (size_t i = 0; i < view_points.size(); i++)
@@ -272,7 +269,7 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	file << "Нижний порог параметров: " << floor[0] << ", " << floor[1] << ", " << floor[2] << ", " << floor[3] << endl;
 	file << "Верхний порог параметров: " << roof[0] << ", " << roof[1] << ", " << roof[2] << ", " << roof[3] << endl;
 	file << "eps генетического = " << eps1 << endl;
-	file << "eps Н.-М. = " << eps1 << endl;
+	file << "eps Н.-М. = " << eps2 << endl;
 	file << "Длина симлекса = " << l << endl;
 	file << "Частота k = " << k << endl;
 	file << "Значение функции резистентности на генетическом = " << resid_func(res1) << endl;
@@ -294,13 +291,13 @@ int main() {
 	vector<double> roof = { 0.1, 3.0, 0.1, 3.0 };
 	vector<double> floor = { 0.0, 0.0, 0.0, 0.0 };
 	double k = 5, l = 0.1;
-	double eps1 = 0.0000001, eps2 = 0.0000000001;
+	double eps1 = 1e-7, eps2 = 1e-10;
 	view_points = { 2.0, 2.7 };
 	
 
-	//task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
-	//	std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
-	//	"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");
+	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
+		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
+		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");
 
 	//view_points = { 2.0, 2.7 };
 	
@@ -334,7 +331,7 @@ int main() {
 			l1 = 0.1; d1 = 0.5; l2 = 0.1; d2 = 1;
 		}
 	}*/
-	Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864 }, 1e-8, 0.1);
+	//Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864 }, 1e-8, 0.1);
 
 	return 0;
 }

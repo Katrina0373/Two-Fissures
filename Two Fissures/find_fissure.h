@@ -43,13 +43,15 @@ public:
 
 	//==========================Œ¡–¿“Õ¿ﬂ «¿ƒ¿◊¿============================
 	
-	cx_vec sigma2, sigma1, u1, u2;
+	static cx_vec sigma2, sigma1, u1, u2;
 	static size_t N1;
 
 	cx_double number_field(const double x);
 	void fill_u_sigma();
 	void fill_sigma2_alpha();
 	cx_double alpha_x3_rj(const double r);
+
+	void eval_static_vecs();
 };
 
 

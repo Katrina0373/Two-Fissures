@@ -857,12 +857,14 @@ double random_state0(const double min, const double max) {
 //	return y;
 //}
 
-vector<double> mutation(const vector<double> x0, const vector<double> x1)  // мутация: генерация случайной величины
+vector<double> mutation(const vector<double> x0, const vector<double> x1, const double fi)  // мутация: генерация случайной величины
 {
 	const int NUM = 100000000;
 	vector<double> x(x0.size());
 	for (size_t i = 0; i < x0.size(); i++)
 	{
+		if (fi < 0.01 && i % 2 == 0)				//если функция уже меньше какого-то значения то возможно l у неё более менее точные но с d всегда проблема
+			continue;
 		x[i] = fabs((double)((rand() * NUM) % (int)((x1[i] - x0[i]) * NUM) + 1) / NUM) + x0[i];
 	}
 	return x;
@@ -896,12 +898,12 @@ vector<double> avg_gen(const vector<double> x1, const vector<double > x2) {
 }
 
 //Скрещивание и формирование новой популяции
-vector<vector<double>> crossover(const vector<vector<double>> p, const double eps, const vector<double> x0, const vector<double> x1, const int iter, const int max_iter)	{
+vector<vector<double>> crossover(const vector<vector<double>> p, const double eps, const vector<double> x0, const vector<double> x1, const int iter, const int max_iter, const vector<double> fi)	{
 	int k = p.size()-1, n = p.size();
 	vector<vector<double>> new_p(n);
 
-	for (int i = 0; i < n / 10; i++)
-		for (int j = i + 1; j < n / 10; j++)
+	for (int i = 0; i < n / 15; i++)
+		for (int j = i + 1; j < n / 15; j++)
 		{
 			new_p[k] = avg_gens(p[i], p[j]);
 			k--;
@@ -911,11 +913,10 @@ vector<vector<double>> crossover(const vector<vector<double>> p, const double ep
 	for (size_t i = 0; i < rest; i++)
 	{
 		new_p[k] = inversion(p[i], eps); k--;
-		new_p[k] = inversion(p[i], eps); k--;
 	}
 
 	for (size_t i = 0; i <= k; i++) {
-		new_p[i] = mutation(x0, x1);//, x1, iter, max_iter);
+		new_p[i] = mutation(x0, x1, fi[i]);//, x1, iter, max_iter);
 	}
 	return new_p;
 }
@@ -953,7 +954,7 @@ std::vector<double> genetic_alg(std::function<double(vector<double>)> f, const d
 	while(f(population[0]) >= eps && iter < max_iter) {
 		iter++;
 		std::cout << iter << " ";
-		population = crossover(population, eps, x0, x1, iter, max_iter);
+		population = crossover(population, eps, x0, x1, iter, max_iter, fi);
 		for (int i = 0; i < size; i++)
 			fi[i] = f(population[i]);
 		sort(population, fi);
