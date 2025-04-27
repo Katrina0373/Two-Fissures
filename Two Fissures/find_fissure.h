@@ -12,20 +12,21 @@ using std::complex; using arma::mat; using arma::vec; using arma::cx_vec; using 
 class Fissures {
 
 public:
-	double l1, d1, l2, d2, k30, k;
+	double l1, d1, l2, d2, k;
 	int N, p;
 	vec t;
 	vec t0;
+	static double k30;
 	static cx_vec roots_sigma2;
 	cx_vec xi;
 	static cx_vec sigma2_alpha;
 	//äëÿ ìàòğèöû Areg
 	static std::vector<double> k3_integral;
-	double alphaM = 300;
+	double alphaM = 400;
 
 	Fissures();
 	Fissures(double l1, double l2, double d1, double d2, int N = 20, double k = 5, int p = 1);
-	void set_coordinates(double l1, double d1, double l2, double d2);
+	void set_parameters(double l1, double d1, double l2, double d2);
 
 	//==========================ÏĞßÌÀß ÇÀÄÀ×À============================
 

@@ -955,8 +955,12 @@ std::vector<double> genetic_alg(std::function<double(vector<double>)> f, const d
 		iter++;
 		std::cout << iter << " ";
 		population = crossover(population, eps, x0, x1, iter, max_iter, fi);
-		for (int i = 0; i < size; i++)
-			fi[i] = f(population[i]);
+		for (int i = 0; i < size; i++) {
+			if (population[i][0] < 0.00000001 || population[i][2] < 0.0000001)
+				fi[i] = 1000000;
+			else
+				fi[i] = f(population[i]);
+		}
 		sort(population, fi);
 	}
 	std::cout << "\nКоличество итераций: " << iter << std::endl;

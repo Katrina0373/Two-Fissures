@@ -32,17 +32,16 @@ void write_to_file(cx_vec x, double l1, double d1, double l2, double d2, double 
 
 }
 
-double resid_func(vector<double> coordinates) {
+double resid_func(vector<double> parameters) {
 	Fissures f = Fissures();
-	f.set_coordinates(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
+	f.set_parameters(parameters[0], parameters[1], parameters[2], parameters[3]);
 	f.solve_xi();
 	double res = 0;
 	for (size_t i = 0; i < view_points.size(); i++)
 	{
-		auto cur_u = f.number_field(view_points[i]);
+		cx_double cur_u = f.number_field(view_points[i]);
 		res += pow(cur_u.real() - true_u[i].real(), 2) * 100 + pow(cur_u.imag() - true_u[i].imag(), 2) * 100;
 	}
-
 	return res;
 }
 
@@ -67,7 +66,7 @@ void four_fields() {
 	d1 = 0.5;
 	l2 = 0.1;
 	d2 = 1.0;
-	f.set_coordinates(l1, d1, l2, d2);
+	f.set_parameters(l1, d1, l2, d2);
 
 	f.eval_static_vecs();
 	f.solve_xi();
@@ -137,7 +136,7 @@ void find_coordinates() {
 	cout << "eps = "; cin >> eps;
 
 	Fissures f;
-	f.set_coordinates(l1, d1, l2, d2);
+	f.set_parameters(l1, d1, l2, d2);
 	f.eval_static_vecs();
 	f.solve_xi();
 	cout << "Задайте значения x1, x2 для поля смещения\nx1 = ";
@@ -202,14 +201,14 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	write_to_file(u_vals, f.l1, f.d1, f.l2, f.d2, f.k, field_file_name);
 
 	cout << "Введите точки наблюдения: ";
-	view_points.clear();
+	/*view_points.clear();
 	while (true) {
 		double a;
 		cin >> a;
 		if (a == 0)
 			break;
 		view_points.push_back(a);
-	}
+	}*/
 
 	true_u.resize(view_points.size());
 	for (size_t i = 0; i < view_points.size(); i++)
@@ -283,16 +282,16 @@ int main() {
 	
 	Fissures f = Fissures();
 	double l1, l2, d1, d2;
-	l1 = 0.1;
-	d1 = 0.5;
-	l2 = 0.1;
-	d2 = 1.0;
-	f.set_coordinates(l1, d1, l2, d2);
+	l1 = 0.05;
+	d1 = 1.5;
+	l2 = 0.04;
+	d2 = 0.5;
+	f.set_parameters(l1, d1, l2, d2);
 	vector<double> roof = { 0.1, 3.0, 0.1, 3.0 };
-	vector<double> floor = { 0.0, 0.0, 0.0, 0.0 };
+	vector<double> floor = { 0.0001, 0.0, 0.00001, 0.0 };
 	double k = 5, l = 0.1;
 	double eps1 = 1e-7, eps2 = 1e-10;
-	view_points = { 2.0, 2.7 };
+	view_points = { 3.5, 3.7, 5, 7 };
 	
 
 	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,

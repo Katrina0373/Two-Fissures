@@ -11,6 +11,7 @@ std::vector<double> Fissures::k3_integral;
 arma::cx_vec Fissures::sigma2_alpha;
 arma::cx_vec Fissures::roots_sigma2;
 arma::cx_vec Fissures::sigma1, Fissures::sigma2, Fissures::u1, Fissures::u2;
+double Fissures::k30;
 size_t Fissures::N1;
 double (*mu)(double) = { [](double x) {return
 		1 + std::pow(x, 2) / 10; } };
@@ -27,7 +28,7 @@ void Fissures::fill_Ac(mat& A11, mat& A21, mat& A12) {
 	A12.resize(N, N);
 
 	for (size_t i = 0; i < N; i++)
-	{
+	{ 
 			for (int j = 0; j < N; j++)
 			{
 				A11(i, j) = 2 * k30 * (1 / (t[i + 1] - t0[j]) - 1 / (t[i] - t0[j]));
@@ -57,7 +58,6 @@ void Fissures::fill_Areg(mat& A11, mat& A21, mat& A12, mat& A22) {
 	A12.resize(N, N);
 	A22.resize(N, N);
 
-
 	for (size_t i = 0; i < N; i++)
 	{
 			for (int j = 0; j < N; j++)
@@ -78,7 +78,7 @@ void Fissures::fill_Areg(mat& A11, mat& A21, mat& A12, mat& A22) {
 					l2 * (t[i + 1] - t0[j]),
 					l2 * (t[i] - t0[j]));
 			}
-		}
+	}
 	
 }
 
@@ -99,6 +99,7 @@ double Fissures::k3reg(const double x1, const double x2) {
 		step += h;
 	}
 
+	//cout << 2 * h * integral << endl;
 	return 2 * h * integral;
 }
 
@@ -109,12 +110,11 @@ double Fissures::k3reg1(const double y1, const double y2) {
 	auto Dij = [y1, y2, this](double alpha, int i) {
 		
 		return k3_integral[i] * (sin(alpha * y1) - sin(alpha * y2));
-		
 	};
 
 	double simpson_integral = 0;
 	
-	int start = 20;
+	int start = 0;
 	double x1 = width / 2 + start * width;
 	double x2 = width / 2 + (start + 1) * width;
 	double x3 = (x2 - x2) / 2;
@@ -126,13 +126,14 @@ double Fissures::k3reg1(const double y1, const double y2) {
 		x3 += width;
 	}
 
+	//cout << simpson_integral << endl;
 	return simpson_integral;
 }
 
 //x = 1
 double Fissures::k3(const double alpha) {
-	double sigma1 = RungeKutta1(alpha, 0, 1, 0, 1, k, 0.00001);
-	double sigma2 = RungeKutta1(alpha, 0, 0, 1, 1, k, 0.00001);
+	double sigma1 = RungeKutta1(alpha, 0, 1, 0, 1, k, 1e-5);
+	double sigma2 = RungeKutta1(alpha, 0, 0, 1, 1, k, 1e-5);
 	return -sigma1 / sigma2;
 }
 
@@ -156,8 +157,7 @@ void Fissures::fill_F(cx_vec& F1, cx_vec& F2) {
 			//cout << sum << endl;
 		}
 		
-		cx_double res = sign * p * 2 * datum::pi * sum * 1.i;
-		return res;
+		return sign * p * 2 * datum::pi * sum * 1.i;
 	};
 
 
@@ -165,7 +165,6 @@ void Fissures::fill_F(cx_vec& F1, cx_vec& F2) {
 	{
 		F1(i) = F(d1 + l1 * t0[i]);
 		F2(i) = F(d2 + l2 * t0[i]);
-		
 	}
 
 	//cout << F1 << endl;
@@ -189,7 +188,7 @@ void Fissures::fill_k3_integral()
 
 cx_vec Fissures::solve_xi()
 {
-	mat Ac11, Ac12, Ac21, Ac22;
+	mat Ac11, Ac12, Ac21;
 	cx_vec F1, F2;
 	mat Areg11, Areg12, Areg21, Areg22;
 
@@ -198,23 +197,23 @@ cx_vec Fissures::solve_xi()
 	/*auto end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end_time - start_time;
 	std::cout << "Время Ac: " << duration.count() << std::endl;
-	start_time = std::chrono::high_resolution_clock::now();
-	*/
+	start_time = std::chrono::high_resolution_clock::now();*/
+	
+	
 	fill_Areg(Areg11, Areg12, Areg21, Areg22);
+	
+	//end_time = std::chrono::high_resolution_clock::now();
+	//duration = end_time - start_time;
+	//std::cout << "Время Areg: " << duration.count() << std::endl;
 
-	/*end_time = std::chrono::high_resolution_clock::now();
-	duration = end_time - start_time;
-	std::cout << "Время Areg: " << duration.count() << std::endl;
-
-	start_time = std::chrono::high_resolution_clock::now();
-	*/
+	//start_time = std::chrono::high_resolution_clock::now();
+	
 	fill_F(F1, F2);
 
 	/*end_time = std::chrono::high_resolution_clock::now();
 	duration = end_time - start_time;
 	std::cout << "Время F: " << duration.count() << std::endl << std::endl;*/
 
-	Ac22 = Ac11;
 	cx_mat A(2*N, 2*N, fill::zeros);
 	cx_vec B(2*N);
 
@@ -225,12 +224,26 @@ cx_vec Fissures::solve_xi()
 			A(i, j) = Ac11(j, i) / l1 + l1 * Areg11(j, i);
 			A(i, N + j) = l2 * Ac21(j, i) + l2 * Areg21(j, i);
 			A(i + N, j) = l1 * Ac12(j, i) + l1 * Areg12(j, i);
-			A(i + N, j + N) = Ac22(j, i) / l2 + l2 * Areg22(j, i);
+			A(i + N, j + N) = Ac11(j, i) / l2 + l2 * Areg22(j, i);
 		}
 		B(i) = F1(i);
 		B(i + N) = F2(i);
 	}
-	xi = solve(A, B);
+	try {
+		xi = solve(A, B);
+	}
+	catch (const char* error_mes) {
+		cout << Ac11 << endl;
+		cout << Ac12 << endl;
+		cout << Ac21 << endl << endl;
+		cout << Areg11 << endl;
+		cout << Areg12 << endl;
+		cout << Areg21 << endl;
+		cout << Areg22 << endl << endl;
+		cout << F1 << endl;
+		cout << F2 << endl;
+		system("pause");
+	}
 
 	//cout << xi << endl;
 
@@ -238,7 +251,7 @@ cx_vec Fissures::solve_xi()
 }
 
 double Fissures::solve_k30() {
-	return k3(alphaM) / alphaM;
+	return k3(600) / 600;
 }
 
 cx_double Fissures::number_field(const double x)
@@ -296,8 +309,8 @@ void Fissures::fill_sigma2_alpha() {
 	sigma2_alpha.resize(2 * N1);
 	for (int i = 0; i < N1; i++)
 	{
-		sigma2_alpha(i) = RungeKutta3(0, 0, 1, 0, 0, 1, 1.0e-3, roots_sigma2[i], k);
-		sigma2_alpha(N1 + i) = RungeKutta3(0, 0, 1, 0, 0, 1, 1.0e-3, -roots_sigma2[i], k);
+		sigma2_alpha(i) = RungeKutta3(0, 0, 1, 0, 0, 1, 1.0e-5, roots_sigma2[i], k);
+		sigma2_alpha(N1 + i) = RungeKutta3(0, 0, 1, 0, 0, 1, 1.0e-5, -roots_sigma2[i], k);
 	}
 }
 
@@ -324,6 +337,7 @@ cx_double Fissures::alpha_x3_rj(const double r)
 
 void Fissures::eval_static_vecs()
 {
+	k30 = solve_k30();
 	fill_k3_integral();
 	fill_sigma2_alpha();
 	fill_u_sigma();
@@ -341,7 +355,6 @@ Fissures::Fissures()
 	d1 = 0.5; d2 = 1;
 	N = 20; k = 5; p = 1;
 	fill_t();
-	k30 = solve_k30();
 }
 
 Fissures::Fissures(double l1, double l2, double d1, double d2, int N, double k, int p)
@@ -354,10 +367,9 @@ Fissures::Fissures(double l1, double l2, double d1, double d2, int N, double k, 
 	this->N = N;
 	this->p = p;
 	fill_t();
-	k30 = solve_k30();
 }
 
-void Fissures::set_coordinates(double l1, double d1, double l2, double d2)
+void Fissures::set_parameters(double l1, double d1, double l2, double d2)
 {
 	this->l1 = l1;
 	this->l2 = l2;
