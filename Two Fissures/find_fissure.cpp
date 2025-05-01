@@ -229,21 +229,8 @@ cx_vec Fissures::solve_xi()
 		B(i) = F1(i);
 		B(i + N) = F2(i);
 	}
-	try {
-		xi = solve(A, B);
-	}
-	catch (const char* error_mes) {
-		cout << Ac11 << endl;
-		cout << Ac12 << endl;
-		cout << Ac21 << endl << endl;
-		cout << Areg11 << endl;
-		cout << Areg12 << endl;
-		cout << Areg21 << endl;
-		cout << Areg22 << endl << endl;
-		cout << F1 << endl;
-		cout << F2 << endl;
-		system("pause");
-	}
+	
+	xi = solve(A, B);
 
 	//cout << xi << endl;
 

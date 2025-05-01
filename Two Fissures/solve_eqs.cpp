@@ -3,36 +3,29 @@
 using namespace std;
 using namespace arma;
 
-double find_kernel_dihotomii(const double aa_r, const double bb_r, const double aa_i, const double bb_i,
-    const double eps, const int max_step, const double k)
+double find_kernel_dihotomii(double aa_r, double bb_r, const double eps, const int max_step, const double k)
 {
     int s = 0;
-    double f_a, f_b, f_xm, xm_r, aaa_r, bbb_r, xm_i, aaa_i, bbb_i;
+    double f_a, f_b, f_xm, xm_r;
     f_a = RungeKutta1(aa_r, 0, 0, 1, 1, k);
     f_b = RungeKutta1(bb_r, 0, 0, 1, 1, k);
-    aaa_r = aa_r;
-    bbb_r = bb_r;
-    aaa_i = aa_i;
-    bbb_i = bb_i;
-    while (eps < (double)(bbb_r - aaa_r) || eps < (double)(bbb_i - aaa_i))
+  
+    while (eps < (double)(bb_r - aa_r))
     {
-        xm_r = (double)(aaa_r + bbb_r) / 0.2e1;
-        xm_i = (double)(aaa_i + bbb_i) / 0.2e1;
+        xm_r = (double)(aa_r + bb_r) / 0.2e1;
         f_xm = RungeKutta1(xm_r, 0, 0, 1, 1, k);
         if ((double)(f_a * f_xm) <= 0.0e0)
         {
-            bbb_r = xm_r;
-            bbb_i = xm_i;
+            bb_r = xm_r;
             f_b = f_xm;
         }
         else
         {
-            aaa_r = xm_r;
-            aaa_i = xm_i;
+            aa_r = xm_r;
             f_a = f_xm;
         }
     }
-    return (double)(aaa_r + bbb_r) / 0.2e1;
+    return (double)(aa_r + bb_r) / 0.2e1;
 }
 
 vector<double> find_ratio_roots(const double k, const  double start, const double end,
@@ -45,12 +38,29 @@ vector<double> find_ratio_roots(const double k, const  double start, const doubl
         x += h;
         double cur_sigma = RungeKutta1(x, 0, 0, 1, 1, k);
         if (cur_sigma * prev_fun <= 0) {
-            roots.push_back(find_kernel_dihotomii(x - h, x, 0, 0, eps, max_step, k));
+            roots.push_back(find_kernel_dihotomii(x - h, x, eps, max_step, k));
         }
         prev_fun = cur_sigma;
     }
 
     return roots;
+}
+
+double newton_method_ratio(const double x, const double alpha0, const double eps, const double k, int max_iter = 100, double h = 0.001) {
+    double alpha = alpha0;
+
+    for (int i = 0; i < max_iter; i++) {
+        double f_val = RungeKutta1(alpha, 0.0, 0.0, 1.0, x, k);
+        double df_val = (RungeKutta1(alpha + 1e-8, 0.0, 0.0, 1.0, x, k) - f_val) /  1e-8;
+        double delta_alpha = f_val / df_val;
+
+        alpha -= delta_alpha;
+
+        if (abs(delta_alpha) < eps) {
+            return alpha;
+        }
+    }
+    throw runtime_error("Метод Ньютона не сошелся");
 }
 
 // Функция mu(x)
@@ -213,6 +223,8 @@ cx_double newton_method(const double x, const cx_double alpha0, const double eps
     throw runtime_error("Метод Ньютона не сошелся");
 }
 
+
+
 cx_vec find_complex_roots(const double start, const double end, const double eps, const double k, const int max_steps, const double h)
 {
     cx_vec roots(50); size_t ind = 0;
@@ -228,5 +240,4 @@ cx_vec find_complex_roots(const double start, const double end, const double eps
         prev_fun = cur_fun;
     }
     return roots.head(ind);
-
 }

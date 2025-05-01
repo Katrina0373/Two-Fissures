@@ -8,6 +8,7 @@ using namespace std;
 
 vector<cx_double> true_u;
 vector<double> view_points;
+double actual_l1, actual_l2;
 
 void write_to_file(cx_vec x, double l1, double d1, double l2, double d2, double k, string file_name) {
 	std::ofstream file(file_name);
@@ -35,6 +36,19 @@ void write_to_file(cx_vec x, double l1, double d1, double l2, double d2, double 
 double resid_func(vector<double> parameters) {
 	Fissures f = Fissures();
 	f.set_parameters(parameters[0], parameters[1], parameters[2], parameters[3]);
+	f.solve_xi();
+	double res = 0;
+	for (size_t i = 0; i < view_points.size(); i++)
+	{
+		cx_double cur_u = f.number_field(view_points[i]);
+		res += pow(cur_u.real() - true_u[i].real(), 2) * 100 + pow(cur_u.imag() - true_u[i].imag(), 2) * 100;
+	}
+	return res;
+}
+
+double resid_func2(vector<double> parameters) {
+	Fissures f = Fissures();
+	f.set_parameters(actual_l1, parameters[0], actual_l2, parameters[1]);
 	f.solve_xi();
 	double res = 0;
 	for (size_t i = 0; i < view_points.size(); i++)
@@ -229,16 +243,17 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	cout << "Значение функции: " << resid_func(res1) << endl;
 
 	//уточняем с помощью Нелдера-Мида
+	actual_l1 = res1[0]; actual_l2 = res1[2];					//фиксируем размеры полудлин
 	cout << "Начало работы алгоритма Нелдера-Мида" << endl;
 	start_time = std::chrono::high_resolution_clock::now();
-	auto res2 = nelder_mead(resid_func, res1, l, eps2);
+	auto res2 = nelder_mead(resid_func2, { res1[1], res1[3]}, l, eps2);
 	end_time = std::chrono::high_resolution_clock::now();
 	duration = end_time - start_time;
 	std::cout << "Время работы алгоритма: " << duration.count() << std::endl;
 	printf("Найденные параметры: %.5f; %.5f; %.5f; %.5f\n",
-		res2[0], res2[1], res2[2], res2[3]);
+		res1[0], res2[0], res1[2], res2[1]);
 	cout << endl;
-	cout << "Значение функции: " << resid_func(res2) << endl;
+	cout << "Значение функции: " << resid_func2(res2) << endl;
 
 	std::ofstream file(report_file_name, std::ios::app);
 	if (!file.is_open()) {
@@ -256,10 +271,10 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	file << "l2 = " << res1[2] << endl;
 	file << "d2 = " << res1[3] << endl;
 	file << "Найденное с помощью Нелдера-Мида: " << endl;
-	file << "l1 = " << res2[0] << endl;
-	file << "d1 = " << res2[1] << endl;
-	file << "l2 = " << res2[2] << endl;
-	file << "d2 = " << res2[3] << endl;
+	file << "l1 = " << res1[0] << endl;
+	file << "d1 = " << res2[0] << endl;
+	file << "l2 = " << res1[2] << endl;
+	file << "d2 = " << res2[1] << endl;
 	file << "Доп. информация: " << endl;
 	file << "Точки наблюдения:";
 	for (size_t i = 0; i < view_points.size(); i++)
@@ -272,26 +287,28 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	file << "Длина симлекса = " << l << endl;
 	file << "Частота k = " << k << endl;
 	file << "Значение функции резистентности на генетическом = " << resid_func(res1) << endl;
-	file << "Значение функции резистентности на Н.-М. = " << resid_func(res2) << endl << endl;
+	file << "Значение функции резистентности на Н.-М. = " << resid_func2(res2) << endl << endl;
 
 	file.close();
 }
+
+
 
 int main() {
 	setlocale(LC_ALL, "Russian");
 	
 	Fissures f = Fissures();
 	double l1, l2, d1, d2;
-	l1 = 0.05;
-	d1 = 1.5;
-	l2 = 0.04;
-	d2 = 0.5;
+	l1 = 0.1;
+	d1 = 0.5;
+	l2 = 0.1;
+	d2 = 1.0;
 	f.set_parameters(l1, d1, l2, d2);
 	vector<double> roof = { 0.1, 3.0, 0.1, 3.0 };
-	vector<double> floor = { 0.0001, 0.0, 0.00001, 0.0 };
+	vector<double> floor = { 0.000001, 0.0, 0.00001, 0.0 };
 	double k = 5, l = 0.1;
 	double eps1 = 1e-7, eps2 = 1e-10;
-	view_points = { 3.5, 3.7, 5, 7 };
+	view_points = { 2.0, 2.7 };
 	
 
 	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,

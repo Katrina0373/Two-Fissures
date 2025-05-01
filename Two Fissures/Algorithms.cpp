@@ -926,7 +926,7 @@ void sort(vector<vector<double>>& p, vector<double> fi) {
 	int size = p.size();
 	for (int i = 0; i < size; i++)
 		for (int j = i + 1; j < size; j++)
-			if (abs(fi[j]) < abs(fi[i])) {
+			if (fi[j] < fi[i]) {
 				std::swap(p[i], p[j]);
 				std::swap(fi[i], fi[j]);
 			}
@@ -951,7 +951,7 @@ std::vector<double> genetic_alg(std::function<double(vector<double>)> f, const d
 	}
 	sort(population, fi);
 
-	while(f(population[0]) >= eps && iter < max_iter) {
+	while(f(population[0]) > eps && iter < max_iter) {
 		iter++;
 		std::cout << iter << " ";
 		population = crossover(population, eps, x0, x1, iter, max_iter, fi);

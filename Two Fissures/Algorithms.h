@@ -143,7 +143,7 @@ std::vector<double> newton_raphson_method(double (*f)(std::vector<double>), doub
 /// </summary>
 /// <param name="f">- функци€</param>
 /// <param name="eps">- точность</param>
-/// <param name="x0, x1">- верхн€€ и нижн€€ граница возможных значний</param>
+/// <param name="x0, x1">- нижн€€ и верхн€€ граница возможных значний</param>
 /// <returns></returns>
 std::vector<double> genetic_alg(const std::function<double(std::vector<double>)> f, const double eps, const std::vector<double> x0, const std::vector<double> x1);
 
