@@ -92,7 +92,7 @@ double Fissures::k3reg(const double x1, const double x2) {
 		return k3_integral[i] *	(sin(alpha * x1) - sin(alpha * x2));
 	};
 
-	double step = h / 2 + h * 0;
+	double step = h / 2;
 	for (size_t i = 0; i < k3_integral.size(); i++)
 	{
 		integral += Dij(step, i);
@@ -231,8 +231,6 @@ cx_vec Fissures::solve_xi()
 	}
 	
 	xi = solve(A, B);
-
-	//cout << xi << endl;
 
 	return xi;
 }

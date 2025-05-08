@@ -857,30 +857,36 @@ double random_state0(const double min, const double max) {
 //	return y;
 //}
 
-vector<double> mutation(const vector<double> x0, const vector<double> x1, const double fi)  // мутация: генерация случайной величины
+vector<double> mutation(const vector<double> point, const vector<double> x0, const vector<double> x1, const double fi)  // мутация: генерация случайной величины
 {
 	const int NUM = 100000000;
-	vector<double> x(x0.size());
+	vector<double> x(point);
 	for (size_t i = 0; i < x0.size(); i++)
 	{
-		if (fi < 0.01 && i % 2 == 0)				//если функция уже меньше какого-то значения то возможно l у неё более менее точные но с d всегда проблема
+		if (fi < 0.001 && i % 2 == 0)				//если функция уже меньше какого-то значения то возможно l у неё более менее точные но с d всегда проблема
 			continue;
 		x[i] = fabs((double)((rand() * NUM) % (int)((x1[i] - x0[i]) * NUM) + 1) / NUM) + x0[i];
 	}
 	return x;
 }
 
-vector<double> inversion(const vector<double> x, const double eps) {
+vector<double> inversion(vector<double> x, const double eps, const double fi) {
 	static int sign = 0;
 	sign++;
 	sign %= 2;
 	if (sign == 0) {
-		for (double i : x)
-			i -= eps;
+		for (size_t i = 0; i < x.size(); i++) {
+			if (fi < 0.01 && i % 2 == 0)
+				continue;
+			x[i] -= eps;
+		}
 	}
 	else {
-		for (double i : x)
-			i += eps;
+		for (size_t i = 0; i < x.size(); i++) {
+			if (fi < 0.01 && i % 2 == 0)
+				continue;
+			x[i] += eps;
+		}
 	}
 	return x;
 }
@@ -893,6 +899,15 @@ vector<double> avg_gens(const vector<double> x1, const vector<double> x2) {
 	return sum;
 }
 
+vector<double> mutation_around(vector<double> x, const vector<double> x0, const vector<double> x1){
+	for (size_t i = 0; i < x.size(); i++)
+	{
+		double eps = (x1[i] - x0[i]) / 5;
+		x[i] = random_state0(x[i] - eps, x[i] + eps);
+	}
+	return x;
+}
+
 vector<double> avg_gen(const vector<double> x1, const vector<double > x2) {
 	return vector<double>();
 }
@@ -902,27 +917,43 @@ vector<vector<double>> crossover(const vector<vector<double>> p, const double ep
 	int k = p.size()-1, n = p.size();
 	vector<vector<double>> new_p(n);
 
-	for (int i = 0; i < n / 15; i++)
-		for (int j = i + 1; j < n / 15; j++)
+	for (int i = 0; i < 4; i++)
+		for (int j = i + 1; j < 4; j++)
 		{
 			new_p[k] = avg_gens(p[i], p[j]);
 			k--;
 	 	}
 
+	new_p[k] = p[0];
+	k--; 
+	new_p[k] = p[1];
+	k--;
+	for (size_t i = 0; i < 5; i++)
+	{
+		new_p[k] = mutation_around(p[0], x0, x1);			//сделаем мутации в окрестностях точки
+		k--;
+	}
+
+	for (size_t i = 0; i < 5; i++)
+	{
+		new_p[k] = inversion(p[i], eps, fi[i]); k--;
+	}
 	int rest = k / 4;
+	
 	for (size_t i = 0; i < rest; i++)
 	{
-		new_p[k] = inversion(p[i], eps); k--;
+		new_p[k] = mutation_around(p[i], x0, x1);			//сделаем мутации в окрестностях точки
+		k--;
 	}
 
 	for (size_t i = 0; i <= k; i++) {
-		new_p[i] = mutation(x0, x1, fi[i]);//, x1, iter, max_iter);
+		new_p[i] = mutation(p[i], x0, x1, fi[i]);//, x1, iter, max_iter);
 	}
 	return new_p;
 }
 
 //сортировка от наименьших значений к наибольшим
-void sort(vector<vector<double>>& p, vector<double> fi) {
+void sort(vector<vector<double>>& p, vector<double>& fi) {
 	int size = p.size();
 	for (int i = 0; i < size; i++)
 		for (int j = i + 1; j < size; j++)
@@ -956,7 +987,7 @@ std::vector<double> genetic_alg(std::function<double(vector<double>)> f, const d
 		std::cout << iter << " ";
 		population = crossover(population, eps, x0, x1, iter, max_iter, fi);
 		for (int i = 0; i < size; i++) {
-			if (population[i][0] < 0.00000001 || population[i][2] < 0.0000001)
+			if (population[i][0] < 0.00000001 || population[i][2] < 0.0000001)  
 				fi[i] = 1000000;
 			else
 				fi[i] = f(population[i]);

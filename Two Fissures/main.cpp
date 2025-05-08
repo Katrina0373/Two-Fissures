@@ -305,12 +305,11 @@ int main() {
 	d2 = 1.0;
 	f.set_parameters(l1, d1, l2, d2);
 	vector<double> roof = { 0.1, 3.0, 0.1, 3.0 };
-	vector<double> floor = { 0.000001, 0.0, 0.00001, 0.0 };
+	vector<double> floor = { 0.000001, 0.0, 0.0000001, 0.0 };
 	double k = 5, l = 0.1;
-	double eps1 = 1e-7, eps2 = 1e-10;
-	view_points = { 2.0, 2.7 };
+	double eps1 = 1e-4, eps2 = 1e-10;
+	view_points = { 2.0, 2.7 };	
 	
-
 	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
 		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
 		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");
@@ -347,7 +346,7 @@ int main() {
 			l1 = 0.1; d1 = 0.5; l2 = 0.1; d2 = 1;
 		}
 	}*/
-	//Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864 }, 1e-8, 0.1);
+    //Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864 }, 1e-8, 0.1);
 
 	return 0;
 }
