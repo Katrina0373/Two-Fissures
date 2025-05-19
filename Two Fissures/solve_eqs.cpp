@@ -12,9 +12,9 @@ double find_kernel_dihotomii(double aa_r, double bb_r, const double eps, const i
   
     while (eps < (double)(bb_r - aa_r))
     {
-        xm_r = (double)(aa_r + bb_r) / 0.2e1;
+        xm_r = (double)(aa_r + bb_r) / 2.0;
         f_xm = RungeKutta1(xm_r, 0, 0, 1, 1, k);
-        if ((double)(f_a * f_xm) <= 0.0e0)
+        if ((double)(f_a * f_xm) <= 0)
         {
             bb_r = xm_r;
             f_b = f_xm;
@@ -25,7 +25,7 @@ double find_kernel_dihotomii(double aa_r, double bb_r, const double eps, const i
             f_a = f_xm;
         }
     }
-    return (double)(aa_r + bb_r) / 0.2e1;
+    return (double)(aa_r + bb_r) / 2.0;
 }
 
 vector<double> find_ratio_roots(const double k, const  double start, const double end,
@@ -42,7 +42,7 @@ vector<double> find_ratio_roots(const double k, const  double start, const doubl
         }
         prev_fun = cur_sigma;
     }
-
+    
     return roots;
 }
 
@@ -69,13 +69,13 @@ double mu(const double x) {
 }
 
 // Производная Sigma1
-double dSigma(const double alpha, const  double k, const  double U1, const double mu) {
-    return (alpha * alpha * mu - k * k) * U1;
+double dSigma(const double alpha, const  double k, const  double U, const double mu) {
+    return (alpha * alpha * mu - k * k) * U;
 }
 
 // Производная U1
-double dU(const double Sigma1, const double mu) {
-    return Sigma1 / mu;
+double dU(const double sigma, const double mu) {
+    return sigma / mu;
 }
 
 
@@ -119,8 +119,8 @@ cx_double dSigma2_i(const cx_double alpha, const double k, const cx_double U2, c
 }
 
 // Производная U2 по x
-cx_double dU2_i(const cx_double sigma2, const double mu) {
-    return sigma2 / mu;
+cx_double dU2_i(const cx_double sigma, const double mu) {
+    return sigma / mu;
 }
 
 pair<cx_double, cx_double> RungeKuttaI(const cx_double alpha, const double x0, const double U2_0, const double sigma2_0, const double x_end, const double k, const double h) {
@@ -166,7 +166,7 @@ cx_double RungeKutta3(const double x0, const double U2_0, const double sigma2_0,
     cx_double U2_alpha = U2_alpha_0;
     cx_double sigma2_alpha = sigma2_alpha_0;
 
-    for (double x = x0; x < x_end; x+=h) {
+    for (double x = x0; x < x_end; x += h) {
         double mu_value = mu(x);
 
         // Для U2 и Σ2
@@ -183,23 +183,24 @@ cx_double RungeKutta3(const double x0, const double U2_0, const double sigma2_0,
         l4 = h * dSigma2_i(alpha, k, U2 + k3, mu_value);
 
         sigma2 += (l1 + 2.0 * l2 + 2.0 * l3 + l4) / 6.0;
+        U2 += (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
 
         // Для U2,α и Σ2,α
         m1 = h * dU2_i(sigma2_alpha, mu_value);
         n1 = h * dSigma2_alpha(alpha, mu_value, k, U2, U2_alpha);
 
         m2 = h * dU2_i(sigma2_alpha + 0.5 * n1, mu_value);
-        n2 = h * dSigma2_alpha(alpha, mu_value, k, U2 + 0.5 * k1, U2_alpha + 0.5 * m1);
+        n2 = h * dSigma2_alpha(alpha, mu_value, k, U2, U2_alpha + 0.5 * m1);
 
         m3 = h * dU2_i(sigma2_alpha + 0.5 * n2, mu_value);
-        n3 = h * dSigma2_alpha(alpha, mu_value, k, U2 + 0.5 * k2, U2_alpha + 0.5 * m2);
+        n3 = h * dSigma2_alpha(alpha, mu_value, k, U2, U2_alpha + 0.5 * m2);
 
         m4 = h * dU2_i(sigma2_alpha + n3, mu_value);
-        n4 = h * dSigma2_alpha(alpha, mu_value, k, U2 + k3, U2_alpha + m3);
+        n4 = h * dSigma2_alpha(alpha, mu_value, k, U2, U2_alpha + m3);
 
         U2_alpha += (m1 + 2.0 * m2 + 2.0 * m3 + m4) / 6.0;
         sigma2_alpha += (n1 + 2.0 * n2 + 2.0 * n3 + n4) / 6.0;
-        U2 += (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
+        
     }
 
     return sigma2_alpha;

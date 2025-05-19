@@ -50,7 +50,7 @@ public:
 	cx_double number_field(const double x);
 	void fill_u_sigma();
 	void fill_sigma2_alpha();
-	cx_double alpha_x3_rj(const double r);
+	cx_double L_x3_rj(const double r);
 
 	void eval_static_vecs();
 };

@@ -863,29 +863,37 @@ vector<double> mutation(const vector<double> point, const vector<double> x0, con
 	vector<double> x(point);
 	for (size_t i = 0; i < x0.size(); i++)
 	{
-		if (fi < 0.001 && i % 2 == 0)				//если функция уже меньше какого-то значения то возможно l у неё более менее точные но с d всегда проблема
+		if (fi < 0.0001 && i % 2 == 0)				//если функция уже меньше какого-то значения то возможно l у неё более менее точные но с d всегда проблема
 			continue;
 		x[i] = fabs((double)((rand() * NUM) % (int)((x1[i] - x0[i]) * NUM) + 1) / NUM) + x0[i];
 	}
 	return x;
 }
 
-vector<double> inversion(vector<double> x, const double eps, const double fi) {
+vector<double> inversion(vector<double> x, const double fi) {
 	static int sign = 0;
 	sign++;
 	sign %= 2;
+	double eps1 = 0.1;
+	double eps2 = 0.01;
 	if (sign == 0) {
 		for (size_t i = 0; i < x.size(); i++) {
-			if (fi < 0.01 && i % 2 == 0)
+			if (i % 2 == 0) {
+				if (fi > 0.0001)
+					x[i] -= eps2;
 				continue;
-			x[i] -= eps;
+			}
+			x[i] -= eps1;
 		}
 	}
 	else {
 		for (size_t i = 0; i < x.size(); i++) {
-			if (fi < 0.01 && i % 2 == 0)
+			if (i % 2 == 0) {
+				if (fi > 0.0001)
+					x[i] += eps2;
 				continue;
-			x[i] += eps;
+			}
+			x[i] += eps1;
 		}
 	}
 	return x;
@@ -899,9 +907,12 @@ vector<double> avg_gens(const vector<double> x1, const vector<double> x2) {
 	return sum;
 }
 
-vector<double> mutation_around(vector<double> x, const vector<double> x0, const vector<double> x1){
+vector<double> mutation_around(vector<double> x, const vector<double> x0, const vector<double> x1, const double fi){
 	for (size_t i = 0; i < x.size(); i++)
 	{
+		if (i % 2 == 0 && fi < 0.0001) {
+			continue;
+		}
 		double eps = (x1[i] - x0[i]) / 5;
 		x[i] = random_state0(x[i] - eps, x[i] + eps);
 	}
@@ -917,32 +928,27 @@ vector<vector<double>> crossover(const vector<vector<double>> p, const double ep
 	int k = p.size()-1, n = p.size();
 	vector<vector<double>> new_p(n);
 
-	for (int i = 0; i < 4; i++)
-		for (int j = i + 1; j < 4; j++)
+	/*for (int i = 0; i < 3; i++)
+		for (int j = i + 1; j < 3; j++)
 		{
 			new_p[k] = avg_gens(p[i], p[j]);
 			k--;
-	 	}
+	 	}*/
 
 	new_p[k] = p[0];
 	k--; 
 	new_p[k] = p[1];
 	k--;
-	for (size_t i = 0; i < 5; i++)
-	{
-		new_p[k] = mutation_around(p[0], x0, x1);			//сделаем мутации в окрестностях точки
-		k--;
-	}
-
-	for (size_t i = 0; i < 5; i++)
-	{
-		new_p[k] = inversion(p[i], eps, fi[i]); k--;
-	}
-	int rest = k / 4;
 	
-	for (size_t i = 0; i < rest; i++)
+	for (size_t i = 0; i < 5; i++)
 	{
-		new_p[k] = mutation_around(p[i], x0, x1);			//сделаем мутации в окрестностях точки
+		new_p[k] = inversion(p[i], fi[i]); k--;
+	}
+	int rest = k / 2;
+	
+	for (size_t i = 1; i < rest; i++)
+	{
+		new_p[k] = mutation_around(p[i], x0, x1, fi[i]);			//сделаем мутации в окрестностях точки
 		k--;
 	}
 

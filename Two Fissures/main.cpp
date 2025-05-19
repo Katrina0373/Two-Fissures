@@ -214,7 +214,8 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	}
 	write_to_file(u_vals, f.l1, f.d1, f.l2, f.d2, f.k, field_file_name);
 
-	cout << "¬ведите точки наблюдени€: ";
+	
+	//cout << "¬ведите точки наблюдени€: ";
 	/*view_points.clear();
 	while (true) {
 		double a;
@@ -299,21 +300,21 @@ int main() {
 	
 	Fissures f = Fissures();
 	double l1, l2, d1, d2;
-	l1 = 0.1;
+	l1 = 0.05;
 	d1 = 0.5;
-	l2 = 0.1;
-	d2 = 1.0;
+	l2 = 0.05;
+	d2 = 3.0;
 	f.set_parameters(l1, d1, l2, d2);
-	vector<double> roof = { 0.1, 3.0, 0.1, 3.0 };
-	vector<double> floor = { 0.000001, 0.0, 0.0000001, 0.0 };
+	vector<double> roof = { 0.2, 4.0, 0.2, 4.0 };
+	vector<double> floor = { 0.000001, 0.0, 0.000001, 0.0 };
 	double k = 5, l = 0.1;
-	double eps1 = 1e-4, eps2 = 1e-10;
-	view_points = { 2.0, 2.7 };	
+	double eps1 = 1e-6, eps2 = 1e-10;
+	view_points = { 4, 4.5 };	
 	
 	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
 		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
 		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");
-
+	 
 	//view_points = { 2.0, 2.7 };
 	
 	
@@ -346,7 +347,7 @@ int main() {
 			l1 = 0.1; d1 = 0.5; l2 = 0.1; d2 = 1;
 		}
 	}*/
-    //Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864 }, 1e-8, 0.1);
+    //Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864 }, 1e-8, 0.01);
 
 	return 0;
 }

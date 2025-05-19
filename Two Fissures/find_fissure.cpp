@@ -146,7 +146,7 @@ void Fissures::fill_F(cx_vec& F1, cx_vec& F2) {
 
 	auto F = [this](double x) {
 		cx_double sum = 0;
-		double sign = x > 0 ? 1 : -1;
+		int sign = x > 0 ? 1 : -1;
 		
 		for (size_t i = 0; i < N1; i++)
 		{
@@ -161,7 +161,7 @@ void Fissures::fill_F(cx_vec& F1, cx_vec& F2) {
 	};
 
 
-	for (int i = 0; i < N; i++)
+	for (size_t i = 0; i < N; i++)
 	{
 		F1(i) = F(d1 + l1 * t0[i]);
 		F2(i) = F(d2 + l2 * t0[i]);
@@ -176,11 +176,12 @@ void Fissures::fill_k3_integral()
 	size_t steps = alphaM / h;
 	k3_integral.resize(steps);
 	
+	double alpha = h / 2;
+
 	for (int i = 0; i < steps; i++) //2646?
 	{
-		double alpha = h / 2 + i * h;
-		double k3res = k3(alpha);
-		k3_integral[i] = (k3res - k30 * alpha) / alpha;
+		k3_integral[i] = (k3(alpha) - k30 * alpha) / alpha;
+		alpha += h;
 	}
 
 }
@@ -245,9 +246,9 @@ cx_double Fissures::number_field(const double x)
 	for (size_t i = 0; i < N; i++)
 	{
 		double r = d1 + l1 * t0[i] - x;
-		sum1 += xi(i) * alpha_x3_rj(r);
+		sum1 += xi(i) * L_x3_rj(r);
 		r = d2 + l2 * t0[i] - x;
-		sum2 += xi(N + i) * alpha_x3_rj(r);
+		sum2 += xi(N + i) * L_x3_rj(r);
 	}
 	return (l1 * sum1 + l2 * sum2) / (datum::pi * N);
 }
@@ -263,20 +264,20 @@ void Fissures::fill_u_sigma()
 	for (size_t i = 0; i < N1; i++)
 	{
 		//заполняем значения sigma1 u1 
-		auto problemK = RungeKuttaI(roots_sigma2(i), 0, 1, 0, 1.0, k);
-		sigma1(i) = problemK.first;
-		u1(i) = problemK.second;
-		problemK = RungeKuttaI(-roots_sigma2(i), 0, 1, 0, 1.0, k);
-		sigma1(i + N1) = problemK.first;
-		u1(i + N1) = problemK.second;
+		auto res_cauchy = RungeKuttaI(roots_sigma2(i), 0, 1, 0, 1.0, k);
+		sigma1(i) = res_cauchy.first;
+		u1(i) = res_cauchy.second;
+		res_cauchy = RungeKuttaI(-roots_sigma2(i), 0, 1, 0, 1.0, k);
+		sigma1(i + N1) = res_cauchy.first;
+		u1(i + N1) = res_cauchy.second;
 
 		//заполняем значения sigma2 u2
-		problemK = RungeKuttaI(roots_sigma2(i), 0, 0, 1, 1.0, k);
-		sigma2(i) = problemK.first;
-		u2(i) = problemK.second;
-		problemK = RungeKuttaI(-roots_sigma2(i), 0, 0, 1, 1.0, k);
-		sigma2(i + N1) = problemK.first;
-		u2(i + N1) = problemK.second;
+		res_cauchy = RungeKuttaI(roots_sigma2(i), 0, 0, 1, 1.0, k);
+		sigma2(i) = res_cauchy.first;
+		u2(i) = res_cauchy.second;
+		res_cauchy = RungeKuttaI(-roots_sigma2(i), 0, 0, 1, 1.0, k);
+		sigma2(i + N1) = res_cauchy.first;
+		u2(i + N1) = res_cauchy.second;
 	}
 
 }
@@ -299,14 +300,14 @@ void Fissures::fill_sigma2_alpha() {
 	}
 }
 
-cx_double Fissures::alpha_x3_rj(const double r)
+cx_double Fissures::L_x3_rj(const double r)
 {
 	cx_double sum = 0;
 	if (r > 0) {
 		for (size_t i = 0; i < N1; i++)
 		{
 			sum += (sigma2(i) * u1(i) - sigma1(i) * u2(i)) 
-				/ sigma2_alpha(i) * exp(1.i * roots_sigma2(i) * abs(r));
+				/ sigma2_alpha(i) * exp(1.i * roots_sigma2(i) * r);
 		}
 		return 2 * datum::pi * sum * 1.i;
 	}
@@ -314,7 +315,7 @@ cx_double Fissures::alpha_x3_rj(const double r)
 		for (size_t i = 0; i < N1; i++)
 		{
 			sum += (sigma2(N1 + i) * u1(N1 + i) - sigma1(N1 + i) * u2(N1 + i)) 
-				/ sigma2_alpha(N1 + i) * exp(1.i * roots_sigma2(i) * abs(r));
+				/ sigma2_alpha(N1 + i) * exp(1.i * roots_sigma2(i) * -r);
 		}
 		return -2 * datum::pi * sum * 1.i;
 	}
