@@ -43,7 +43,6 @@ void Fissures::fill_Ac(mat& A11, mat& A21, mat& A12) {
 
 			}
 	}
-
 }
 
 void Fissures::fill_Areg(mat& A11, mat& A21, mat& A12, mat& A22) {
@@ -79,7 +78,6 @@ void Fissures::fill_Areg(mat& A11, mat& A21, mat& A12, mat& A22) {
 					l2 * (t[i] - t0[j]));
 			}
 	}
-	
 }
 
 
@@ -167,8 +165,7 @@ void Fissures::fill_F(cx_vec& F1, cx_vec& F2) {
 		F2(i) = F(d2 + l2 * t0[i]);
 	}
 
-	//cout << F1 << endl;
-}
+ }
 
 void Fissures::fill_k3_integral()
 {
@@ -185,7 +182,6 @@ void Fissures::fill_k3_integral()
 	}
 
 }
-
 
 cx_vec Fissures::solve_xi()
 {
@@ -230,11 +226,15 @@ cx_vec Fissures::solve_xi()
 		B(i) = F1(i);
 		B(i + N) = F2(i);
 	}
-	
-	xi = solve(A, B);
+	//cout << A << endl << endl;
+	//cout << B << endl << endl;
 
+	xi = solve(A, B);
+	
+	//cout << xi << endl;
 	return xi;
 }
+
 
 double Fissures::solve_k30() {
 	return k3(600) / 600;
@@ -309,7 +309,6 @@ cx_double Fissures::L_x3_rj(const double r)
 			sum += (sigma2(i) * u1(i) - sigma1(i) * u2(i)) 
 				/ sigma2_alpha(i) * exp(1.i * roots_sigma2(i) * r);
 		}
-		return 2 * datum::pi * sum * 1.i;
 	}
 	else {
 		for (size_t i = 0; i < N1; i++)
@@ -317,8 +316,9 @@ cx_double Fissures::L_x3_rj(const double r)
 			sum += (sigma2(N1 + i) * u1(N1 + i) - sigma1(N1 + i) * u2(N1 + i)) 
 				/ sigma2_alpha(N1 + i) * exp(1.i * roots_sigma2(i) * -r);
 		}
-		return -2 * datum::pi * sum * 1.i;
+		sum *= -1;
 	}
+	return 2 * datum::pi * sum * 1.i;
 }
 
 void Fissures::eval_static_vecs()

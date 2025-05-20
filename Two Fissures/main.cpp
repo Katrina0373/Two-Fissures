@@ -3,6 +3,7 @@
 #include"Algorithms.h"
 #include<chrono>
 #include<format>
+#include"solve_eqs.h"
 
 using namespace std;
 
@@ -178,7 +179,9 @@ void Minimize_with_Nelder_Mid(Fissures f, const vector<double> point, const doub
 	
 	f.eval_static_vecs();
 	f.solve_xi();
-	true_u = { f.number_field(view_points[0]), f.number_field(view_points[1])};
+	true_u.resize(view_points.size());
+	for (size_t i = 0; i < view_points.size(); i++)
+		true_u[i] = f.number_field(view_points[i]);
 	cout << resid_func(point) << endl;
 	auto start_time = std::chrono::high_resolution_clock::now();
 	//cout << resid_func({ f.l1, f.d1, f.l2, f.d2 }) << endl;
@@ -309,12 +312,12 @@ int main() {
 	vector<double> floor = { 0.000001, 0.0, 0.000001, 0.0 };
 	double k = 5, l = 0.1;
 	double eps1 = 1e-6, eps2 = 1e-10;
-	view_points = { 4, 4.5 };	
+	view_points = { 2, 2.4, 2.6, 3, 3.5, 3.7, 4, 4.5, 5 };	
 	
-	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
+	/*task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
 		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
 		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");
-	 
+	 */
 	//view_points = { 2.0, 2.7 };
 	
 	
@@ -347,7 +350,7 @@ int main() {
 			l1 = 0.1; d1 = 0.5; l2 = 0.1; d2 = 1;
 		}
 	}*/
-    //Minimize_with_Nelder_Mid(f, { 0.0864128, 0.332124, 0.112353, 0.933864 }, 1e-8, 0.01);
+    Minimize_with_Nelder_Mid(f, { 0.0507846, 3.03187, 0.0481245, 0.533158 }, 1e-8, 0.01);
 
 	return 0;
 }

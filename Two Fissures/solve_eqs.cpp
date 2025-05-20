@@ -242,3 +242,77 @@ cx_vec find_complex_roots(const double start, const double end, const double eps
     }
     return roots.head(ind);
 }
+
+cx_vec matVecMul(const cx_mat& A, const cx_vec& x) {
+    int n = x.size();
+    cx_vec result(n, fill::zeros);
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j)
+            result[i] += A(i,j) * x(j);
+    return result;
+}
+
+cx_double dot(const cx_vec& a, const cx_vec& b) {
+    cx_double result = 0.0;
+    for (size_t i = 0; i < a.size(); ++i)
+        result += a(i) * b(i);
+    return result;
+}
+
+cx_vec solveMinResiduals(const cx_mat& A, const cx_vec& b, int maxIter, double tol) {
+    int n = b.size();
+    cx_vec x(n, fill::zeros); // начальное приближение
+    cx_vec r = b;
+
+    for (int iter = 0; iter < maxIter; ++iter) {
+        cx_vec Ax = matVecMul(A, x);
+        r.clear();
+        r.resize(n);
+        for (int i = 0; i < n; ++i)
+            r(i) = (b(i) - Ax(i));
+
+        cx_vec Ar = matVecMul(A, r);
+        cx_double alpha = dot(Ar, r) / dot(Ar, Ar);
+
+        for (int i = 0; i < n; ++i)
+            x(i) += alpha * r(i);
+
+        cx_double norm = std::sqrt(dot(r, r));
+        if (abs(norm) < tol)
+            break;
+    }
+
+    return x;
+}
+
+
+
+cx_vec solveJacobi(const cx_mat& A, const cx_vec& b, int maxIter, double tol) {
+    int n = b.size();
+    cx_vec x(n, fill::zeros);        // начальное приближение
+    cx_vec x_new(n, fill::zeros);
+
+    for (int iter = 0; iter < maxIter; ++iter) {
+        for (int i = 0; i < n; ++i) {
+            cx_double sigma = 0.0;
+            for (int j = 0; j < n; ++j) {
+                if (j != i)
+                    sigma += A(i, j) * x[j];
+            }
+            x_new[i] = (b[i] - sigma) / A(i, i);
+        }
+
+        // Проверка сходимости
+        double error = 0.0;
+        for (int i = 0; i < n; ++i) {
+            error += std::abs(x_new[i] - x[i]);
+        }
+
+        if (error < tol)
+            break;
+
+        x = x_new;
+    }
+
+    return x_new;
+}

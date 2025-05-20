@@ -19,5 +19,4 @@ cx_double RungeKutta3(const double x0, const double U2_0, const double sigma2_0,
 std::pair<cx_double, cx_double> RungeKuttaI(const cx_double alpha, const double x0, const double U2_0, const double sigma2_0, const double x_end, const double k, double h = 1e-5);
 
 
-
 #endif // !
