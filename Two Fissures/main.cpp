@@ -217,7 +217,7 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	}
 	write_to_file(u_vals, f.l1, f.d1, f.l2, f.d2, f.k, field_file_name);
 
-	
+	return;
 	//cout << "Введите точки наблюдения: ";
 	/*view_points.clear();
 	while (true) {
@@ -247,17 +247,16 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	cout << "Значение функции: " << resid_func(res1) << endl;
 
 	//уточняем с помощью Нелдера-Мида
-	actual_l1 = res1[0]; actual_l2 = res1[2];					//фиксируем размеры полудлин
 	cout << "Начало работы алгоритма Нелдера-Мида" << endl;
 	start_time = std::chrono::high_resolution_clock::now();
-	auto res2 = nelder_mead(resid_func2, { res1[1], res1[3]}, l, eps2);
+	auto res2 = nelder_mead(resid_func, res1, l, eps2);
 	end_time = std::chrono::high_resolution_clock::now();
 	duration = end_time - start_time;
 	std::cout << "Время работы алгоритма: " << duration.count() << std::endl;
 	printf("Найденные параметры: %.5f; %.5f; %.5f; %.5f\n",
-		res1[0], res2[0], res1[2], res2[1]);
+		res1[0], res1[1], res1[2], res1[3]);
 	cout << endl;
-	cout << "Значение функции: " << resid_func2(res2) << endl;
+	cout << "Значение функции: " << resid_func(res2) << endl;
 
 	std::ofstream file(report_file_name, std::ios::app);
 	if (!file.is_open()) {
@@ -275,10 +274,10 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	file << "l2 = " << res1[2] << endl;
 	file << "d2 = " << res1[3] << endl;
 	file << "Найденное с помощью Нелдера-Мида: " << endl;
-	file << "l1 = " << res1[0] << endl;
-	file << "d1 = " << res2[0] << endl;
-	file << "l2 = " << res1[2] << endl;
-	file << "d2 = " << res2[1] << endl;
+	file << "l1 = " << res2[0] << endl;
+	file << "d1 = " << res2[1] << endl;
+	file << "l2 = " << res2[2] << endl;
+	file << "d2 = " << res2[3] << endl;
 	file << "Доп. информация: " << endl;
 	file << "Точки наблюдения:";
 	for (size_t i = 0; i < view_points.size(); i++)
@@ -291,7 +290,7 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	file << "Длина симлекса = " << l << endl;
 	file << "Частота k = " << k << endl;
 	file << "Значение функции резистентности на генетическом = " << resid_func(res1) << endl;
-	file << "Значение функции резистентности на Н.-М. = " << resid_func2(res2) << endl << endl;
+	file << "Значение функции резистентности на Н.-М. = " << resid_func(res2) << endl << endl;
 
 	file.close();
 }
@@ -303,21 +302,21 @@ int main() {
 	
 	Fissures f = Fissures();
 	double l1, l2, d1, d2;
-	l1 = 0.05;
-	d1 = 0.5;
-	l2 = 0.05;
+	l1 = 0.1;
+	d1 = 1.05;
+	l2 = 0.00001;
 	d2 = 3.0;
 	f.set_parameters(l1, d1, l2, d2);
 	vector<double> roof = { 0.2, 4.0, 0.2, 4.0 };
 	vector<double> floor = { 0.000001, 0.0, 0.000001, 0.0 };
-	double k = 5, l = 0.1;
+	double k = 5, l = 0.01;
 	double eps1 = 1e-6, eps2 = 1e-10;
-	view_points = { 2, 2.4, 2.6, 3, 3.5, 3.7, 4, 4.5, 5 };	
+	view_points = { 2, 2.5, 3, 3.5, 4, 4.5 };
 	
-	/*task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
+	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
 		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
 		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");
-	 */
+	 
 	//view_points = { 2.0, 2.7 };
 	
 	
@@ -350,7 +349,7 @@ int main() {
 			l1 = 0.1; d1 = 0.5; l2 = 0.1; d2 = 1;
 		}
 	}*/
-    Minimize_with_Nelder_Mid(f, { 0.0507846, 3.03187, 0.0481245, 0.533158 }, 1e-8, 0.01);
+    //Minimize_with_Nelder_Mid(f, { 0.0606363, 0.633927, 0.0815219, 0.385587 }, 1e-8, 0.01);
 
 	return 0;
 }

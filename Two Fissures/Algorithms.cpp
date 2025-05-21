@@ -919,8 +919,19 @@ vector<double> mutation_around(vector<double> x, const vector<double> x0, const 
 	return x;
 }
 
-vector<double> avg_gen(const vector<double> x1, const vector<double > x2) {
-	return vector<double>();
+vector<double> blend_crossover(const vector<double> p1, const vector<double > p2, const vector<double > x0, const vector<double> x1) {
+
+	double d, min_val, max_val;
+	double alpha = 0.3;
+	vector<double> x_new(p1.size());
+	for (size_t i = 0; i < p1.size(); i++)
+	{
+		d = abs(p1[i] - p2[i]);
+		min_val = std::max(std::min(p1[i], p2[i]) - alpha * d, x0[i]);
+		max_val = std::min(std::max(p1[i], p2[i]) + alpha * d, x1[i]);
+		x_new[i] = random_state0(min_val, max_val);
+	}
+	return x_new;
 }
 
 //Скрещивание и формирование новой популяции
@@ -928,29 +939,29 @@ vector<vector<double>> crossover(const vector<vector<double>> p, const double ep
 	int k = p.size()-1, n = p.size();
 	vector<vector<double>> new_p(n);
 
-	/*for (int i = 0; i < 3; i++)
-		for (int j = i + 1; j < 3; j++)
+	for (int i = 0; i < 5; i++)
+		for (int j = i + 1; j < 5; j++)
 		{
-			new_p[k] = avg_gens(p[i], p[j]);
+			new_p[k] = blend_crossover(p[i], p[j], x0, x1);
 			k--;
-	 	}*/
+	 	}
 
 	new_p[k] = p[0];
 	k--; 
 	new_p[k] = p[1];
 	k--;
 	
-	for (size_t i = 0; i < 5; i++)
+
+	int rest = k / 2;
+	for (size_t i = 0; i < rest; i++)
 	{
 		new_p[k] = inversion(p[i], fi[i]); k--;
 	}
-	int rest = k / 2;
-	
-	for (size_t i = 1; i < rest; i++)
-	{
-		new_p[k] = mutation_around(p[i], x0, x1, fi[i]);			//сделаем мутации в окрестностях точки
-		k--;
-	}
+	//for (size_t i = 1; i < rest; i++)
+	//{
+	//	new_p[k] = mutation_around(p[i], x0, x1, fi[i]);			//сделаем мутации в окрестностях точки
+	//	k--;
+	//}
 
 	for (size_t i = 0; i <= k; i++) {
 		new_p[i] = mutation(p[i], x0, x1, fi[i]);//, x1, iter, max_iter);
