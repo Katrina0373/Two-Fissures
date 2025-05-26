@@ -35,6 +35,9 @@ void write_to_file(cx_vec x, double l1, double d1, double l2, double d2, double 
 }
 
 double resid_func(vector<double> parameters) {
+	if (parameters[0] < 0.00000001 || parameters[2] < 0.0000001
+		|| parameters[1] < 0 || parameters[3] < 0)
+		return 1000000;
 	Fissures f = Fissures();
 	f.set_parameters(parameters[0], parameters[1], parameters[2], parameters[3]);
 	f.solve_xi();
@@ -217,7 +220,6 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	}
 	write_to_file(u_vals, f.l1, f.d1, f.l2, f.d2, f.k, field_file_name);
 
-	return;
 	//cout << "¬ведите точки наблюдени€: ";
 	/*view_points.clear();
 	while (true) {
@@ -303,15 +305,15 @@ int main() {
 	Fissures f = Fissures();
 	double l1, l2, d1, d2;
 	l1 = 0.1;
-	d1 = 1.05;
-	l2 = 0.00001;
-	d2 = 3.0;
+	d1 = 0.5;
+	l2 = 0.1;
+	d2 = 1.0;
 	f.set_parameters(l1, d1, l2, d2);
 	vector<double> roof = { 0.2, 4.0, 0.2, 4.0 };
 	vector<double> floor = { 0.000001, 0.0, 0.000001, 0.0 };
 	double k = 5, l = 0.01;
 	double eps1 = 1e-6, eps2 = 1e-10;
-	view_points = { 2, 2.5, 3, 3.5, 4, 4.5 };
+	view_points = { 2, 2.7, 3, 3.4, 3.8, 4.2 };
 	
 	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
 		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),

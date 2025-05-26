@@ -203,8 +203,13 @@ cx_vec Fissures::solve_xi()
 	//duration = end_time - start_time;
 	//std::cout << "Время Areg: " << duration.count() << std::endl;
 
-	//start_time = std::chrono::high_resolution_clock::now();
-	
+	//start_time = std::chrono::high_resolution_clock::now();	
+	/*end_time = std::chrono::high_resolution_clock::now();
+	duration = end_time - start_time;
+	std::cout << "Время Areg: " << duration.count() << std::endl;
+
+	start_time = std::chrono::high_resolution_clock::now();
+	*/
 	fill_F(F1, F2);
 
 	/*end_time = std::chrono::high_resolution_clock::now();

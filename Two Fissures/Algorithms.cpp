@@ -247,8 +247,6 @@ vector<vector<double>> ComputeHessian(double (*f)(vector<double>), vector<double
 	return hessian;
 }
 
-//======================Методы минимизации функции=========================
-
 std::pair<double, double> local_segment_Svenn(double x0, double delta, double (*f)(double))
 {
 	double a = 0, b = 0, x, y;
@@ -286,551 +284,6 @@ std::pair<double, double> local_segment_Svenn(double x0, double delta, double (*
 	return { a, b };
 }
 
-//NOTE: не работает на функции pow(8.7 * pow(sin(x),2) + 1.1, 1.0/3) + 4.0 * exp(x - 3.4)  [-5.8, -2.1]
-double passive_serach(double a, double b, double(*f)(double), double eps)
-{
-	a_b_correction(a, b);
-	int n = 1;
-	while ((b - a) / (n + 1) >= eps / 2)
-		n += 2;
-
-	double h = (b - a) / (n + 1); //шаг
-	int k = 0;					//количество проб
-	double f1, f2 = DBL_MAX;
-	double c = a - 2 * h, d = b, x = a;
-	do {
-		k++;
-		x += h;
-		f1 = f2;
-		f2 = f(x);
-		c += h;
-		if (f1 <= f2) d = x;
-	} while (k != n && f1 > f2);
-
-	return (c + d) / 2;
-}
-
-double dichotomy(double a, double b, double(*f)(double), double eps, double delta)
-{
-	a_b_correction(a, b);
-	if (eps < delta) {
-		delta = eps / 10;
-	}
-	double c = a, d = b, x;
-	while (abs(d - c) >= eps) {
-		x = (d + c - delta) / 2;
-		if (f(x) <= f(x + delta))
-			d = x + delta;
-		else c = x;
-	}
-	return (c + d) / 2;
-}
-
-double dichotomy_2(double a, double b, std::function<double(double)> f, double eps, double delta)
-{
-	a_b_correction(a, b);
-	if (eps < delta) {
-		delta = eps / 10;
-	}
-	double c = a, d = b, x;
-	while (abs(d - c) >= eps) {
-		x = (d + c - delta) / 2;
-		if (f(x) <= f(x + delta))
-			d = x + delta;
-		else c = x;
-	}
-	return (c + d) / 2;
-}
-
-
-double divide_by_half(double a, double b, double(*f)(double), double eps)
-{
-	a_b_correction(a, b);
-	double c = a, d = b, x1 = (c + d) / 2, x2, x3;
-
-	do
-	{
-		x2 = (c + x1) / 2;
-		x3 = (d + x1) / 2;
-
-		if (f(x1) >= f(x2)) {
-			d = x1; x1 = x2;
-		}
-		else if (f(x1) >= f(x3)) {
-			c = x1; x1 = x3;
-		}
-		else {
-			c = x2; d = x3;
-		}
-
-	} while (d - c >= eps);
-
-	return x1;
-}
-
-double Fibonachi_method(double a, double b, double(*f)(double), double eps, double delta)
-{
-	a_b_correction(a, b);
-	int n = 2;
-	double L;
-	std::vector<int> F(3);
-	F[0] = 1, F[1] = 1, F[2] = 2;
-	L = (b - a) / F[2] + (F[0] / F[2]) * delta;
-	while (L >= eps) {
-		int t = F[2];
-		F[2] = F[2] + F[1];
-		F[0] = F[1];
-		F[1] = t;
-		n++;
-		L = (b - a) / F[2] + (F[0] / F[2]) * delta;
-	}
-
-	double x1 = b - (F[1] * (b - a) / F[2] + pow(-1, n) / F[2] * delta);
-	double x2 = a + b - x1;
-
-	for (size_t i = 2; i < n; i++)
-	{
-		if (f(x1) <= f(x2)) {
-			b = x2; x2 = x1; x1 = a + b - x2;
-		}
-		else {
-			a = x1; x1 = x2; x2 = a + b - x1;
-		}
-	}
-	return (a + b) / 2;
-}
-
-double gold_sector(double a, double b, double(*f)(double), double eps)
-{
-	a_b_correction(a, b);
-	double tau = 1.618034;
-	double x1, x2, c = a, d = b;
-	x1 = b - 1 / tau * (b - a);
-	x2 = a + b - x1;
-
-	while (d - c >= eps) {
-		if (f(x1) <= f(x2)) {
-			d = x2;
-			x2 = x1;
-			x1 = c + d - x2;
-		}
-		else {
-			c = x1;
-			x1 = x2;
-			x2 = c + d - x1;
-		}
-	}
-	return (x2 + x1) / 2;
-}
-
-//не трогать, а то сломается
-double quadr_interpolation(double a, double b, double(*f)(double), double eps, double delta)
-{
-	a_b_correction(a, b);
-	bool ok = true;
-	double x1, x2, x3, _x, x_min, f1, f2, f3, f_min, _f;
-	do
-	{
-		if (ok) {
-			x2 = (b + a) / 2;
-			x1 = x2 - delta;
-			x3 = x2 + delta;
-		}
-		f1 = f(x1); f2 = f(x2); f3 = f(x3);
-
-		//нахождение минимума из трёх
-		if (f1 > f2) {
-			if (f2 > f3) {
-				f_min = f3;
-				x_min = x3;
-			}
-			else {
-				f_min = f2;
-				x_min = x2;
-			}
-		}
-		else {
-			if (f1 > f3) {
-				f_min = f3;
-				x_min = x3;
-			}
-			else {
-				f_min = f1;
-				x_min = x1;
-			}
-		}
-
-		if ((f1 - f3) * (x2 - x3) == (f2 - f3) * (x1 - x3)) {  // три точки на одной прямой 
-			if (f_min < f3)
-				b = x2;
-			else
-				a = x2;
-
-			_x = x2; _f = f2; ok = true;
-		}
-		else {
-			_x = (f1 * (x3 * x3 - x2 * x2) + f2 * (x1 * x1 - x3 * x3) + f3 * (x2 * x2 - x1 * x1))
-				/ (2 * (f1 * (x3 - x2) + f2 * (x1 - x3) + f3 * (x2 - x1)));
-			_f = f(_x);
-			if (abs((f_min - _f) / _f) >= eps || abs((x_min - _x) / _x) >= eps) {
-				if (_x >= x1 && _x <= x3) {
-					if (_f <= f3)
-						b = x3;
-					if (f1 >= _f) {
-						a = x1;
-						if (f2 >= _f)
-							a = x2;
-					}
-					if (_x < x2) {
-						x3 = x2; x2 = _x;
-					}
-					else {
-						x1 = x2; x2 = _x;
-					}
-					ok = false;
-				}
-				else {
-					if (f1 <= f2)
-						b = x2;
-					else {
-						a = x1;
-						if (f2 >= f3)
-							a = x2;
-					}
-					ok = true;
-				}
-			}
-		}
-	} while ((abs(f_min - _f)/_f) > eps && abs((x_min - _x) / _x) >= eps);
-
-	return x_min;
-}
-
-//======================Методы минимизации n-го порядка=========================
-vector<double> polyhedrom_method(double(*f)(vector<double>), double eps,
-	vector<double> x0, double alfa, double beta, double gamma, double l, int max_iter) {
-
-	int k = 0, s = 1, n = x0.size();
-	double atc = 0.0;
-	vector<double> c(n), u(n), w(n), v(n), fi(n+1);
-
-	auto x = choose_x0(x0, l);
-	for (size_t i = 0; i <= n; i++)
-	{
-		fi[i] = f(x[i]);
-	}
-	arrange(s, x, fi);
-	int iter = 0;
-	do {
-		
-		for (size_t i = 0; i < n; i++)
-		{
-			c[i] = std::accumulate(x[i].begin(), x[i].end() - 1, 0.0) / n;
-		}
-
-
-		for (size_t i = 0; i < n; i++)
-		{
-			u[i] = c[i] + alfa * (c[i] - x[n][i]);
-		}
-
-		s = n;
-
-		double fu = f(u);
-
-		if (fu < fi[0]) {
-			for (size_t i = 0; i < n; i++)
-			{
-				v[i] = c[i] + beta * (u[i] - c[i]);
-			}
-			double fv = f(v);
-			if (fv < fu) {
-				x[n] = v;
-				fi[n] = fv;
-			}
-			else {
-				x[n] = u;
-				fi[n] = fu;
-			}
-		}
-		else {
-			if (fi[0] <= fu && fu <= fi[n - 1]) {
-				fi[n] = fu;
-				x[n] = u;
-			}
-			else {
-				if (fu <= fi[n]) {
-					for (size_t i = 0; i < n; i++)
-					{
-						w[i] = c[i] + gamma * (u[i] - c[i]);
-					}
-				}
-				else {
-					for (size_t i = 0; i < n; i++)
-					{
-						w[i] = c[i] + gamma * (x[n][i] - c[i]);
-					}
-				}
-				double fw = f(w);
-				if (fw < fmin(fi[n], fu)) {
-					fi[n] = fw;
-					x[n] = w;
-				}
-				else {
-					for (size_t i = 1; i < n + 1; i++)
-					{
-						for (size_t j = 0; j < n; j++)
-						{
-							x[i][j] = (x[0][j] + x[i][j]) / 2;
-						}
-					}
-					s = 1;
-				}
-			}
-		}
-		k++;
-		atc = 0;
-		for (size_t i = 1; i <= n; i++)
-		{
-			atc += pow(f(x[i]) - f(x[0]), 2);
-		}
-		atc = sqrt(atc / n);
-
-		arrange(s, x, fi);
-		iter++;
-	} while (atc >= eps && iter < max_iter);
-
-	vector<double> res(n);
-	for (size_t i = 0; i < n; i++)
-	{
-		for (size_t j = 0; j < n + 1; j++)
-		{
-			res[i] += x[j][i];
-		}
-		res[i] = res[i] / (n + 1);
-	}
-
-	return res;
-}
-
-std::vector<double> polyhedrom_method(double(*f)(std::vector<double>), double eps, std::vector<double> x0, double l)
-{
-	double alfa = 1, beta = 2, gamma = 0.5;
-	return polyhedrom_method(f, eps, x0, alfa, beta, gamma, l);
-}
-
-//осторожно выбирать delta, желательно меньше 0.01
-std::vector<double> gradient_method_of_steepest_descent(double(*f)(std::vector<double>),
-	double eps, std::vector<double> x0, double eps1, double delta, double delta2) {
-
-	int n = x0.size();
-	vector<double> x2 = x0, x1, s1, arg1(n), arg2(n);
-	double delta3 = 0.00001, a, b, lambda, lambda1;
-
-	while (Euclidean_norm(gradient(x2, f, delta3)) >= eps1) {
-		x1 = x2;
-		s1 = gradient(x1, f, delta3);
-
-		a = 0; lambda = delta; b = 2 * delta;
-		for (size_t i = 0; i < n; i++)
-		{
-			s1[i] = -s1[i];
-			arg1[i] = x1[i] + lambda * s1[i];
-			arg2[i] = x1[i] + (lambda + delta) * s1[i];
-		}
-
-		while (f(arg1) > f(arg2)) {
-			lambda += delta;
-			delta *= 2;
-			b += delta;
-			for (size_t i = 0; i < n; i++)
-			{
-				arg1[i] = x1[i] + lambda * s1[i];
-				arg2[i] = x1[i] + (lambda + delta) * s1[i];
-			}
-		}
-
-		std::function<double(double)> fi = [f, s1, x1](double l) {
-			vector<double> arg(x1.size());
-			for (size_t i = 0; i < x1.size(); i++)
-				arg[i] = x1[i] - l * s1[i];
-			return f(arg); };
-
-		lambda1 = dichotomy_2(a, b, fi, eps, delta2);
-
-		for (size_t i = 0; i < n; i++)
-		{
-			x2[i] = x1[i] + lambda1 * s1[i];
-		}
-
-	}
-	return x2;
-}
-
-//не чувствителен к параметрам; рекомендуется эпсилон = 0.1, лямбда = 1, бета = 0.95
-std::vector<double> gradient_method_with_step_splitting(double(*f)(std::vector<double>), double eps, std::vector<double> x0, double eps1, double lambda, double beta)
-{
-	size_t n = x0.size();
-	vector<double> x2 = x0, x1, s1, arg1(n);
-	double delta = 0.00000001, lambda1, norm = 0;
-
-	while (Euclidean_norm(gradient(x2, f, delta)) >= eps1) {
-		x1 = x2;
-		s1 = gradient(x1, f, delta);
-		lambda1 = lambda;
-		for (size_t i = 0; i < n; i++)
-		{
-			s1[i] = -s1[i];
-			arg1[i] = x1[i] + lambda1 * s1[i];
-		}
-		double y = f(x1), z = f(arg1);
-		norm = Euclidean_norm(s1);
-		while ((z - y) > -eps * lambda1 * norm * norm) {
-			lambda1 *= beta;
-			for (size_t i = 0; i < n; i++)
-			{
-				arg1[i] = x1[i] + lambda1 * s1[i];
-			}
-			z = f(arg1);
-		}
-
-		for (size_t i = 0; i < n; i++)
-			x2[i] = x1[i] + lambda1 * s1[i];
-	}
-
-	return x2;
-}
-
-std::vector<double> conjugate_gradient(double(*f)(std::vector<double>), double eps, std::vector<double> x0) {
-
-	size_t n = x0.size();
-	vector<double> x1(n), x2 = x0, x3 = x0, s;
-	int k = 0;
-	double beta, delta = 0.000001, lambda;
-
-	while (Euclidean_norm(gradient(x2, f, delta)) >= eps) {
-		x1 = x2;
-
-		if (k % n == 0) {
-			beta = 0;
-			s = gradient(x1, f, delta);
-			for (size_t i = 0; i < n; i++)
-				s[i] = -s[i];
-		}
-		else {
-			auto s1 = gradient(x1, f, delta);
-			auto s3 = gradient(x3, f, delta);
-			beta = scalar(s1, s1) / scalar(s3, s3);
-			auto s_add = gradient(x1, f, delta);
-			for (size_t i = 0; i < n; i++)
-				s[i] = -s_add[i] + beta * s[i];
-		}
-
-		std::function<double(double)> fi = [f, s, x1](double l) {
-			vector<double> arg(x1.size());
-			for (size_t i = 0; i < x1.size(); i++)
-				arg[i] = x1[i] - l * s[i];
-			return f(arg); };
-
-		lambda = dichotomy_2(0, 1, fi, eps, eps / 10);
-
-		for (size_t i = 0; i < n; i++)
-			x2[i] = x1[i] + lambda * s[i];
-		x3 = x1;
-		k++;
-	}
-	return x2;
-}
-
-std::vector<double> newton_method(double (*f)(std::vector<double>), double eps, std::vector<double> x0) {
-	size_t n = x0.size();
-	vector<double> x2 = x0, x1(n), s(n), s1(n);
-	double delta = 0.0000001, lambda;
-	while (Euclidean_norm(gradient(x2, f, delta)) >= eps)
-	{
-		x1 = x2;
-		auto H = ComputeHessian(f, x1, delta);
-		s1 = gradient(x1, f, delta);
-		for (size_t i = 0; i < n; i++)
-			s1[i] = -s1[i];
-		if (is_positive_H(H)) {
-		
-			for (size_t i = 0; i < n; i++)
-				H[i].push_back(s1[i]);
-
-			solve_LES(H);
-
-			for (size_t i = 0; i < n; i++)
-				s[i] = H[i][n];
-			
-			lambda = 1;
-		}
-		else {
-			s = s1;
-			std::function<double(double)> fi = [f, s, x1](double l) {
-				vector<double> arg(x1.size());
-				for (size_t i = 0; i < x1.size(); i++)
-					arg[i] = x1[i] - l * s[i];
-				return f(arg); };
-
-			lambda = dichotomy_2(0, 1, fi, eps, eps / 10);
-		}
-		for (size_t i = 0; i < n; i++)
-		{
-			x2[i] = x1[i] + lambda * s[i];
-		}
-	}
-	return x2;
-}
-
-std::vector<double> newton_raphson_method(double(*f)(std::vector<double>), double eps, std::vector<double> x0)
-{
-	size_t n = x0.size();
-	vector<double> x2 = x0, x1(n), s(n), s1(n);
-	double delta = 0.00000001, lambda;
-	while (Euclidean_norm(gradient(x2, f, delta)) >= eps)
-	{
-		x1 = x2;
-		auto H = ComputeHessian(f, x1, delta);
-		s1 = gradient(x1, f, delta);
-		for (size_t i = 0; i < n; i++)
-			s1[i] = -s1[i];
-		if (is_positive_H(H)) {
-
-			for (size_t i = 0; i < n; i++)
-				H[i].push_back(s1[i]);
-			solve_LES(H);
-
-			for (size_t i = 0; i < n; i++)
-				s[i] = H[i][n];
-
-			std::function<double(double)> fi = [f, s, x1](double l) {
-				vector<double> arg(x1.size());
-				for (size_t i = 0; i < x1.size(); i++)
-					arg[i] = x1[i] + l * s[i];
-				return f(arg); };
-
-			lambda = dichotomy_2(0, 1, fi, eps, eps / 10);
-
-			
-		}
-		else {
-			s = s1;
-			std::function<double(double)> fi = [f, s, x1](double l) {
-				vector<double> arg(x1.size());
-				for (size_t i = 0; i < x1.size(); i++)
-					arg[i] = x1[i] - l * s[i];
-				return f(arg); };
-
-			lambda = dichotomy_2(0, 1, fi, eps, eps / 10);
-		}
-		for (size_t i = 0; i < n; i++)
-		{
-			x2[i] = x1[i] + lambda * s[i];
-		}
-	}
-	return x2;
-}
 
 //==================================================Генетический алгоритм====================================================
 
@@ -842,20 +295,6 @@ double random_state0(const double min, const double max) {
 	return dis(gen);
 }
 
-//Мутация
-//vector<double> mutation(const vector<double> x, const vector<double> x0, const vector<double> x1, int cur_generation, int max_generation) {
-//	
-//	vector<double> y(x0.size());
-//	double max_delta, delta, mutation;
-//	for (size_t i = 0; i < x0.size(); i++)
-//	{
-//		max_delta = (x1[i] - x0[i]) * 0.07;
-//		delta = max_delta * (1.0 - (double)cur_generation / max_generation);
-//		mutation = ((static_cast<double>(rand()) / RAND_MAX) * 2 - 1) * delta;
-//		y[i] = x[i] + mutation;
-//	}
-//	return y;
-//}
 
 vector<double> mutation(const vector<double> point, const vector<double> x0, const vector<double> x1, const double fi)  // мутация: генерация случайной величины
 {
@@ -899,14 +338,6 @@ vector<double> inversion(vector<double> x, const double fi) {
 	return x;
 }
 
-vector<double> avg_gens(const vector<double> x1, const vector<double> x2) {
-	vector<double> sum(x1.size());
-	for (size_t i = 0; i < x1.size(); i++)
-		sum[i] = (x1[i] + x2[i]) / 2;
-	
-	return sum;
-}
-
 vector<double> mutation_around(vector<double> x, const vector<double> x0, const vector<double> x1, const double fi){
 	for (size_t i = 0; i < x.size(); i++)
 	{
@@ -915,6 +346,34 @@ vector<double> mutation_around(vector<double> x, const vector<double> x0, const 
 		}
 		double eps = (x1[i] - x0[i]) / 5;
 		x[i] = random_state0(x[i] - eps, x[i] + eps);
+	}
+	return x;
+}
+
+vector<double> mutation_around2(vector<double> x, const vector<double> x0, const vector<double> x1, const double fi) {
+	const double k = 1.0;
+	for (size_t i = 0; i < x.size(); i++)
+	{
+		if (i % 2 == 0 && fi < 0.0001) {
+			continue;
+		} 
+		double base_eps = (x1[i] - x0[i]) / 5.0;
+		//double decay = exp(-k / fi);
+		double rand_factor = random_state0(0.5, 2);  // Множитель случайности
+		double eps = base_eps * rand_factor;
+
+		x[i] = random_state0(x[i] - eps, x[i] + eps);
+	}
+	return x;
+}
+
+
+vector<double> intermediate_recombination(const vector<double>& p1, const vector<double>& p2) {
+	vector<double> x(p1.size());
+	for (size_t i = 0; i < p1.size(); i++)
+	{
+		double alpha = random_state0(-0.25, 1.25);
+		x[i] = p1[i] + alpha * (p2[i] - p1[i]);
 	}
 	return x;
 }
@@ -934,40 +393,20 @@ vector<double> blend_crossover(const vector<double> p1, const vector<double > p2
 	return x_new;
 }
 
-//Скрещивание и формирование новой популяции
-vector<vector<double>> crossover(const vector<vector<double>> p, const double eps, const vector<double> x0, const vector<double> x1, const int iter, const int max_iter, const vector<double> fi)	{
-	int k = p.size()-1, n = p.size();
-	vector<vector<double>> new_p(n);
-
-	for (int i = 0; i < 5; i++)
-		for (int j = i + 1; j < 5; j++)
-		{
-			new_p[k] = blend_crossover(p[i], p[j], x0, x1);
-			k--;
-	 	}
-
-	new_p[k] = p[0];
-	k--; 
-	new_p[k] = p[1];
-	k--;
+size_t roulette_wheel_selection(const vector<vector<double>>& p, const vector<double>& fi, double total_sum) {
 	
+	double pick = random_state0(0, total_sum);
 
-	int rest = k / 2;
-	for (size_t i = 0; i < rest; i++)
+	double current = 0;
+	for (size_t i = 0; i < p.size(); i++)
 	{
-		new_p[k] = inversion(p[i], fi[i]); k--;
+		current += (1 / fi[i]) / total_sum;
+		if (current >= pick)
+			return i;
 	}
-	//for (size_t i = 1; i < rest; i++)
-	//{
-	//	new_p[k] = mutation_around(p[i], x0, x1, fi[i]);			//сделаем мутации в окрестностях точки
-	//	k--;
-	//}
-
-	for (size_t i = 0; i <= k; i++) {
-		new_p[i] = mutation(p[i], x0, x1, fi[i]);//, x1, iter, max_iter);
-	}
-	return new_p;
+	return 0;
 }
+
 
 //сортировка от наименьших значений к наибольшим
 void sort(vector<vector<double>>& p, vector<double>& fi) {
@@ -978,6 +417,73 @@ void sort(vector<vector<double>>& p, vector<double>& fi) {
 				std::swap(p[i], p[j]);
 				std::swap(fi[i], fi[j]);
 			}
+}
+
+
+//Скрещивание и формирование новой популяции
+void crossover(std::function<double(vector<double>)> f, vector<vector<double>>& p, const double eps, const vector<double>& x0, const vector<double>& x1,
+	const int iter, const int max_iter, vector<double>& fi)	{
+	int n = p.size();
+	vector<vector<double>> new_p(n/2);
+	vector<double> new_fi(n / 2);
+
+	double total_sum = 0;
+	for (size_t i = 0; i < n; i++)
+	{
+		total_sum += 1 / fi[i];
+	}
+	//промежуточная рекомбинация с выбором родителей 
+	for (size_t i = 0; i < n/2; i++)
+	{
+		auto p1 = roulette_wheel_selection(p, fi, total_sum);
+		auto p2 = roulette_wheel_selection(p, fi, total_sum);
+		if (p1 == p2) {
+			i--;
+			continue;
+		}
+		new_p[i] = intermediate_recombination(p[p1],p[p2]);
+		new_fi[i] = f(new_p[i]);
+	}
+	for (size_t i = 0; i < n/2; i++)
+	{
+		if (random_state0(0, 1) <= 0.5) {
+			new_p[i] = mutation_around2(new_p[i], x0, x1, new_fi[i]);
+			new_fi[i] = f(new_p[i]);
+		}
+	}
+
+	sort(p, fi);
+
+	new_p.insert(new_p.end(), p.begin(), p.begin() + n/2);
+	new_fi.insert(new_fi.end(), fi.begin(), fi.begin()+n/2);
+	p = new_p;
+	fi = new_fi;
+}
+
+
+
+//перемешка
+void shuffle(vector<vector<double>>& p, vector<double>& fi) {
+	// Создаем индексы
+	std::vector<size_t> indices(p.size());
+	for (size_t i = 0; i < indices.size(); ++i)
+		indices[i] = i;
+
+	// Перемешиваем индексы
+	std::random_device rd;
+	std::mt19937 g(rd());
+	std::shuffle(indices.begin(), indices.end(), g);
+
+	// Создаем новые вектора по перемешанным индексам
+	std::vector<vector<double>>    data_shuffled(p.size());
+	std::vector<double> labels_shuffled(fi.size());
+
+	for (size_t i = 0; i < indices.size(); ++i) {
+		data_shuffled[i] = p[indices[i]];
+		labels_shuffled[i] = fi[indices[i]];
+	}
+	p = data_shuffled;
+	fi = labels_shuffled;
 }
 
 std::vector<double> genetic_alg(std::function<double(vector<double>)> f, const double eps, const std::vector<double> x0, const std::vector<double> x1)
@@ -997,20 +503,14 @@ std::vector<double> genetic_alg(std::function<double(vector<double>)> f, const d
 		}
 		fi[i] = f(population[i]);
 	}
-	sort(population, fi);
 
 	while(f(population[0]) > eps && iter < max_iter) {
 		iter++;
 		std::cout << iter << " ";
-		population = crossover(population, eps, x0, x1, iter, max_iter, fi);
-		for (int i = 0; i < size; i++) {
-			if (population[i][0] < 0.00000001 || population[i][2] < 0.0000001)  
-				fi[i] = 1000000;
-			else
-				fi[i] = f(population[i]);
-		}
-		sort(population, fi);
+		shuffle(population, fi);
+		crossover(f, population, eps, x0, x1, iter, max_iter, fi);
 	}
+	sort(population, fi);
 	std::cout << "\nКоличество итераций: " << iter << std::endl;
 	return population[0];	
 }
