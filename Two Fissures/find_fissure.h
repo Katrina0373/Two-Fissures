@@ -13,7 +13,8 @@ class Fissures {
 
 public:
 	double l1, d1, l2, d2, k;
-	int N, p;
+	int p;
+	size_t N;
 	vec t;
 	vec t0;
 	static double k30;
@@ -30,6 +31,7 @@ public:
 
 	//==========================ÏÐßÌÀß ÇÀÄÀ×À============================
 
+	void check_parameters();
 	void fill_t();
 	void fill_Ac(mat& A11, mat& A21, mat& A12);
 	void fill_Areg(mat& A11, mat& A21, mat& A12, mat& A22);

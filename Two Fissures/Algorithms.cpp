@@ -295,8 +295,15 @@ double random_state0(const double min, const double max) {
 	return dis(gen);
 }
 
+Genetic_Alg::Genetic_Alg(function<double(vector<double>)> f, vector<double> lower_bound, vector<double> upper_bound, double eps) {
+	this->f = f;
+	n = lower_bound.size();
+	x0 = lower_bound;
+	x1 = upper_bound;
+	this->eps = eps;
+}
 
-vector<double> mutation(const vector<double> point, const vector<double> x0, const vector<double> x1, const double fi)  // мутация: генерация случайной величины
+vector<double> Genetic_Alg::mutation(const vector<double> point, const double fi)  // мутация: генерация случайной величины
 {
 	const int NUM = 100000000;
 	vector<double> x(point);
@@ -309,8 +316,8 @@ vector<double> mutation(const vector<double> point, const vector<double> x0, con
 	return x;
 }
 
-vector<double> inversion(vector<double> x, const double fi) {
-	static int sign = 0;
+vector<double> Genetic_Alg::inversion(vector<double> x, const double fi) {
+	/*static int sign = 0;
 	sign++;
 	sign %= 2;
 	double eps1 = 0.1;
@@ -335,28 +342,25 @@ vector<double> inversion(vector<double> x, const double fi) {
 			x[i] += eps1;
 		}
 	}
-	return x;
+	return x;*/
+	return vector<double>();
 }
 
-vector<double> mutation_around(vector<double> x, const vector<double> x0, const vector<double> x1, const double fi){
+void Genetic_Alg::mutation_around(vector<double>& x) {
 	for (size_t i = 0; i < x.size(); i++)
 	{
-		if (i % 2 == 0 && fi < 0.0001) {
-			continue;
-		}
 		double eps = (x1[i] - x0[i]) / 5;
 		x[i] = random_state0(x[i] - eps, x[i] + eps);
 	}
-	return x;
 }
 
-vector<double> mutation_around2(vector<double> x, const vector<double> x0, const vector<double> x1, const double fi) {
+vector<double> Genetic_Alg::mutation_around2(vector<double> x, const double fi) {
 	const double k = 1.0;
 	for (size_t i = 0; i < x.size(); i++)
 	{
 		if (i % 2 == 0 && fi < 0.0001) {
 			continue;
-		} 
+		}
 		double base_eps = (x1[i] - x0[i]) / 5.0;
 		//double decay = exp(-k / fi);
 		double rand_factor = random_state0(0.5, 2);  // Множитель случайности
@@ -368,7 +372,7 @@ vector<double> mutation_around2(vector<double> x, const vector<double> x0, const
 }
 
 
-vector<double> intermediate_recombination(const vector<double>& p1, const vector<double>& p2) {
+vector<double> Genetic_Alg::intermediate_recombination(const vector<double>& p1, const vector<double>& p2) {
 	vector<double> x(p1.size());
 	for (size_t i = 0; i < p1.size(); i++)
 	{
@@ -378,7 +382,7 @@ vector<double> intermediate_recombination(const vector<double>& p1, const vector
 	return x;
 }
 
-vector<double> blend_crossover(const vector<double> p1, const vector<double > p2, const vector<double > x0, const vector<double> x1) {
+vector<double> Genetic_Alg::blend_crossover(const vector<double> p1, const vector<double > p2) {
 
 	double d, min_val, max_val;
 	double alpha = 0.3;
@@ -393,8 +397,8 @@ vector<double> blend_crossover(const vector<double> p1, const vector<double > p2
 	return x_new;
 }
 
-size_t roulette_wheel_selection(const vector<vector<double>>& p, const vector<double>& fi, double total_sum) {
-	
+size_t Genetic_Alg::roulette_wheel_selection(const vector<vector<double>>& p, const vector<double>& fi, double total_sum) {
+
 	double pick = random_state0(0, total_sum);
 
 	double current = 0;
@@ -409,53 +413,81 @@ size_t roulette_wheel_selection(const vector<vector<double>>& p, const vector<do
 
 
 //сортировка от наименьших значений к наибольшим
-void sort(vector<vector<double>>& p, vector<double>& fi) {
-	int size = p.size();
-	for (int i = 0; i < size; i++)
-		for (int j = i + 1; j < size; j++)
+void Genetic_Alg::sort(vector<vector<double>>& p, vector<double>& fi) {
+	for (size_t i = 0; i < pop_size; i++)
+		for (size_t j = i + 1; j < pop_size; j++)
 			if (fi[j] < fi[i]) {
 				std::swap(p[i], p[j]);
 				std::swap(fi[i], fi[j]);
 			}
 }
 
+double Genetic_Alg::square_dist(const vector<double> p1, const vector<double> p2) {
+	double dist = 0;
+	for (size_t i = 0; i < n; i++)
+	{
+		dist += pow(abs((p1[i] - p2[i]) / (x0[i] - x1[i])), d);
+	}
+	return dist / n;
+}
 
 //Скрещивание и формирование новой популяции
-void crossover(std::function<double(vector<double>)> f, vector<vector<double>>& p, const double eps, const vector<double>& x0, const vector<double>& x1,
-	const int iter, const int max_iter, vector<double>& fi)	{
-	int n = p.size();
-	vector<vector<double>> new_p(n/2);
-	vector<double> new_fi(n / 2);
+void Genetic_Alg::crossover(vector<vector<double>>& p,	const int iter, vector<double>& fi) {
+	size_t new_pop_size = 0.75 * pop_size;
+	vector<vector<double>> new_p(new_pop_size);
+	vector<double> new_fi(new_pop_size);
 
 	double total_sum = 0;
-	for (size_t i = 0; i < n; i++)
+	for (size_t i = 0; i < pop_size; i++)
 	{
 		total_sum += 1 / fi[i];
 	}
-	//промежуточная рекомбинация с выбором родителей 
-	for (size_t i = 0; i < n/2; i++)
+	for (size_t i = 0; i < new_pop_size; i++)
 	{
-		auto p1 = roulette_wheel_selection(p, fi, total_sum);
-		auto p2 = roulette_wheel_selection(p, fi, total_sum);
-		if (p1 == p2) {
-			i--;
-			continue;
+
+		//промежуточная рекомбинация с выбором родителей 
+		auto p1_ind = roulette_wheel_selection(p, fi, total_sum);
+		auto p2_ind = roulette_wheel_selection(p, fi, total_sum);
+		if (p1_ind == p2_ind) {
+			p2_ind = rand() % pop_size;
 		}
-		new_p[i] = intermediate_recombination(p[p1],p[p2]);
-		new_fi[i] = f(new_p[i]);
-	}
-	for (size_t i = 0; i < n/2; i++)
-	{
-		if (random_state0(0, 1) <= 0.5) {
-			new_p[i] = mutation_around2(new_p[i], x0, x1, new_fi[i]);
-			new_fi[i] = f(new_p[i]);
+		auto child = intermediate_recombination(p[p1_ind], p[p2_ind]);
+		//вычисляем вероятность мутации
+		double dist = square_dist(p[p1_ind], p[p2_ind]);
+		if (random_state0(0, 1) <= (1 - dist) * Mm) {
+			mutation_around(child);
 		}
+		double child_fi = f(child);
+
+		//выбираем кто останется в новом поколении
+		/*if (child_fi < fi[p1_ind]) {
+			if (child_fi < fi[p2_ind]) {
+				new_p[i] = child;
+				new_fi[i] = child_fi;
+			}
+			else {
+				new_p[i] = p[p2_ind];
+				new_fi[i] = fi[p2_ind];
+			}
+		}
+		else {
+			if (fi[p1_ind] < fi[p2_ind]) {
+				new_p[i] = p[p1_ind];
+				new_fi[i] = fi[p1_ind];
+			}
+			else {
+				new_p[i] = p[p2_ind];
+				new_fi[i] = fi[p2_ind];
+			}
+		}*/
+		new_p[i] = child;
+		new_fi[i] = child_fi;
 	}
 
 	sort(p, fi);
+	new_p.insert(new_p.begin(), p.begin(), p.begin() + pop_size - new_pop_size);
+	new_fi.insert(new_fi.begin(), fi.begin(), fi.begin() + pop_size - new_pop_size);
 
-	new_p.insert(new_p.end(), p.begin(), p.begin() + n/2);
-	new_fi.insert(new_fi.end(), fi.begin(), fi.begin()+n/2);
 	p = new_p;
 	fi = new_fi;
 }
@@ -463,7 +495,7 @@ void crossover(std::function<double(vector<double>)> f, vector<vector<double>>& 
 
 
 //перемешка
-void shuffle(vector<vector<double>>& p, vector<double>& fi) {
+void Genetic_Alg::shuffle(vector<vector<double>>& p, vector<double>& fi) {
 	// Создаем индексы
 	std::vector<size_t> indices(p.size());
 	for (size_t i = 0; i < indices.size(); ++i)
@@ -486,16 +518,16 @@ void shuffle(vector<vector<double>>& p, vector<double>& fi) {
 	fi = labels_shuffled;
 }
 
-std::vector<double> genetic_alg(std::function<double(vector<double>)> f, const double eps, const std::vector<double> x0, const std::vector<double> x1)
+std::vector<double> Genetic_Alg::genetic_alg()
 {
-	int iter = 0, n = x0.size(), size = 50, max_iter = 500;
-	vector<vector<double>> population(size);
-	vector<double> fi(size);					//значения функций
-	for (size_t i = 0; i < size; i++)
+	int iter = 0;
+	vector<vector<double>> population(pop_size);
+	vector<double> fi(pop_size);					//значения функций
+	for (size_t i = 0; i < pop_size; i++)
 		population[i].resize(n);
 
 	srand(time(NULL));
-	for (int i = 0; i < size; i++)     // Формирование начальной популяции
+	for (int i = 0; i < pop_size; i++)     // Формирование начальной популяции
 	{
 		for (size_t j = 0; j < n; j++)
 		{
@@ -504,16 +536,17 @@ std::vector<double> genetic_alg(std::function<double(vector<double>)> f, const d
 		fi[i] = f(population[i]);
 	}
 
-	while(f(population[0]) > eps && iter < max_iter) {
+	while (*(std::min_element(fi.begin(), fi.end())) > eps && iter < max_iter) {
 		iter++;
 		std::cout << iter << " ";
 		shuffle(population, fi);
-		crossover(f, population, eps, x0, x1, iter, max_iter, fi);
+		crossover(population, iter, fi);
 	}
 	sort(population, fi);
 	std::cout << "\nКоличество итераций: " << iter << std::endl;
-	return population[0];	
+	return population[0];
 }
+
 
 //==================================================НОВЫЙ МЕТОД НЕЛДЕРА-МИДА==============================================================
 

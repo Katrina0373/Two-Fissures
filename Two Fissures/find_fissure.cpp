@@ -334,6 +334,14 @@ void Fissures::eval_static_vecs()
 	fill_u_sigma();
 }
 
+void Fissures::check_parameters()
+{
+	double eps = 1e-7;
+	if (l1 < eps || l2 < eps) {
+		throw("The half-length of the bundle is too small");
+	}
+}
+
 void Fissures::fill_t()
 {
 	t = linspace(-1, 1, N+1);
@@ -350,6 +358,8 @@ Fissures::Fissures()
 
 Fissures::Fissures(double l1, double l2, double d1, double d2, int N, double k, int p)
 {
+	if (N == 0)
+		throw("The number of nodes must be greater than 0");
 	this->l1 = l1;
 	this->l2 = l2;
 	this->d1 = d1;
@@ -357,6 +367,7 @@ Fissures::Fissures(double l1, double l2, double d1, double d2, int N, double k, 
 	this->k = k;
 	this->N = N;
 	this->p = p;
+	check_parameters();
 	fill_t();
 }
 
@@ -366,4 +377,5 @@ void Fissures::set_parameters(double l1, double d1, double l2, double d2)
 	this->l2 = l2;
 	this->d1 = d1;
 	this->d2 = d2;
+	check_parameters();
 }

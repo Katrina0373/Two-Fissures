@@ -35,7 +35,7 @@ void write_to_file(cx_vec x, double l1, double d1, double l2, double d2, double 
 }
 
 double resid_func(vector<double> parameters) {
-	if (parameters[0] < 0.00000001 || parameters[2] < 0.0000001
+	if (parameters[0] < 1e-7 || parameters[2] < 1e-7
 		|| parameters[1] < 0 || parameters[3] < 0)
 		return 1000000;
 	Fissures f = Fissures();
@@ -167,7 +167,8 @@ void find_coordinates() {
 	true_u = { f.number_field(xx1), f.number_field(xx2) };
 
 	auto start_time = std::chrono::high_resolution_clock::now();
-	auto res = genetic_alg(resid_func, eps, x0, x1);
+	auto gen = Genetic_Alg(resid_func, x0, x1, eps);
+	auto res = gen.genetic_alg();
 	auto end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end_time - start_time;
 	std::cout << "\nВремя работы алгоритма в сек: " << duration.count() << std::endl << endl;
@@ -198,9 +199,6 @@ void Minimize_with_Nelder_Mid(Fissures f, const vector<double> point, const doub
 	cout << "Значение функции: " << resid_func(res) << endl;
 }
 
-double fun(vector<double> x) {
-	return x[0] * x[0] + x[0] * x[1] + x[1] * x[1] - 6 * x[0] - 9 * x[1];
-}
 
 void task4(const double l1, const double d1, const double l2, const double d2, const double k,
 	const vector<double> floor, const vector<double> roof, const double eps1,
@@ -239,7 +237,8 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	//находим с помощью генетического
 	cout << "Начало работы генетического алгоритма" << endl;
 	auto start_time = std::chrono::high_resolution_clock::now();
-	auto res1 = genetic_alg(resid_func, eps1, floor, roof);
+	auto gen = Genetic_Alg(resid_func, floor, roof, eps1);
+	auto res1 = gen.genetic_alg();
 	auto end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end_time - start_time;
 	std::cout << "Время работы алгоритма: " << duration.count() << std::endl;
@@ -256,7 +255,7 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	duration = end_time - start_time;
 	std::cout << "Время работы алгоритма: " << duration.count() << std::endl;
 	printf("Найденные параметры: %.5f; %.5f; %.5f; %.5f\n",
-		res1[0], res1[1], res1[2], res1[3]);
+		res2[0], res2[1], res2[2], res2[3]);
 	cout << endl;
 	cout << "Значение функции: " << resid_func(res2) << endl;
 
@@ -311,9 +310,9 @@ int main() {
 	f.set_parameters(l1, d1, l2, d2);
 	vector<double> roof = { 0.2, 4.0, 0.2, 4.0 };
 	vector<double> floor = { 0.000001, 0.0, 0.000001, 0.0 };
-	double k = 5, l = 0.01;
+	double k = 5, l = 0.1;
 	double eps1 = 1e-6, eps2 = 1e-10;
-	view_points = { 2, 2.7, 3, 3.4, 3.8, 4.2 };
+	view_points = { 0.5, 0.7, 1, 1.3, 1.6, 1.9, 2.3 };
 	
 	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
 		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
@@ -351,7 +350,7 @@ int main() {
 			l1 = 0.1; d1 = 0.5; l2 = 0.1; d2 = 1;
 		}
 	}*/
-    //Minimize_with_Nelder_Mid(f, { 0.0606363, 0.633927, 0.0815219, 0.385587 }, 1e-8, 0.01);
+    //Minimize_with_Nelder_Mid(f, { 0.056693, 1.23781, 0.126691, 0.72516 }, 1e-8, 0.1);
 
 	return 0;
 }
