@@ -11,7 +11,7 @@ using std::complex; using arma::mat; using arma::vec; using arma::cx_vec; using 
 
 class Fissures {
 
-public:
+private:
 	double l1, d1, l2, d2, k;
 	int p;
 	size_t N;
@@ -24,13 +24,25 @@ public:
 	//äëÿ ìàòğèöû Areg
 	static std::vector<double> k3_integral;
 	double alphaM = 400;
-
+public:
 	Fissures();
-	Fissures(double l1, double l2, double d1, double d2, int N = 20, double k = 5, int p = 1);
+	Fissures(double l1, double d1, double l2, double d2, int N = 20, double k = 5, int p = 1);
 	void set_parameters(double l1, double d1, double l2, double d2);
+	double get_k();
+	double get_l1();
+	double get_d1();
+	double get_l2();
+	double get_d2();
+	double get_N();
+	double get_p();
+
+	cx_vec solve_xi();
+	void eval_static_vecs();
+	cx_double number_field(const double x);
 
 	//==========================ÏĞßÌÀß ÇÀÄÀ×À============================
 
+private:
 	void check_parameters();
 	void fill_t();
 	void fill_Ac(mat& A11, mat& A21, mat& A12);
@@ -41,7 +53,6 @@ public:
 	double k3reg1(const double x1,const double x2);
 	double k3(const double alpha);
 
-	cx_vec solve_xi();
 	double solve_k30();
 
 	//==========================ÎÁĞÀÒÍÀß ÇÀÄÀ×À============================
@@ -49,12 +60,10 @@ public:
 	static cx_vec sigma2, sigma1, u1, u2;
 	static size_t N1;
 
-	cx_double number_field(const double x);
 	void fill_u_sigma();
 	void fill_sigma2_alpha();
 	cx_double L_x3_rj(const double r);
 
-	void eval_static_vecs();
 };
 
 
