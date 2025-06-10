@@ -183,10 +183,6 @@ void Fissures::fill_k3_integral()
 
 }
 
-bool is_symmetric(const arma::cx_mat& A, double tol = 1e-10) {
-	return arma::approx_equal(A, A.t(), "absdiff", tol);
-}
-
 cx_vec Fissures::solve_xi()
 {
 	mat Ac11, Ac12, Ac21;
@@ -235,13 +231,15 @@ cx_vec Fissures::solve_xi()
 		B(i) = F1(i);
 		B(i + N) = F2(i);
 	}
+	//cout << A << endl << endl;
 	//cout << B << endl << endl;
-	
+
 	xi = solve(A, B);
 	
 	//cout << xi << endl;
 	return xi;
 }
+
 
 double Fissures::solve_k30() {
 	return k3(600) / 600;
@@ -358,7 +356,7 @@ Fissures::Fissures()
 	fill_t();
 }
 
-Fissures::Fissures(double l1, double d1, double l2, double d2, int N, double k, int p)
+Fissures::Fissures(double l1, double l2, double d1, double d2, int N, double k, int p)
 {
 	if (N == 0)
 		throw("The number of nodes must be greater than 0");
@@ -380,33 +378,4 @@ void Fissures::set_parameters(double l1, double d1, double l2, double d2)
 	this->d1 = d1;
 	this->d2 = d2;
 	check_parameters();
-}
-
-double Fissures::get_k()
-{
-	return k;
-}
-double Fissures::get_l1()
-{
-	return l1;
-}
-double Fissures::get_d1()
-{
-	return d1;
-}
-double Fissures::get_l2()
-{
-	return l2;
-}
-double Fissures::get_d2()
-{
-	return d2;
-}
-double Fissures::get_N()
-{
-	return N;
-}
-double Fissures::get_p()
-{
-	return p;
 }

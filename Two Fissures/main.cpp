@@ -9,7 +9,7 @@ using namespace std;
 
 vector<cx_double> true_u;
 vector<double> view_points;
-double k;
+double actual_l1, actual_l2;
 
 void write_to_file(cx_vec x, double l1, double d1, double l2, double d2, double k, string file_name) {
 	std::ofstream file(file_name);
@@ -38,7 +38,8 @@ double resid_func(vector<double> parameters) {
 	if (parameters[0] < 1e-7 || parameters[2] < 1e-7
 		|| parameters[1] < 0 || parameters[3] < 0)
 		return 1000000;
-	Fissures f = Fissures(parameters[0], parameters[1], parameters[2], parameters[3], 20, k);
+	Fissures f = Fissures();
+	f.set_parameters(parameters[0], parameters[1], parameters[2], parameters[3]);
 	f.solve_xi();
 	double res = 0;
 	for (size_t i = 0; i < view_points.size(); i++)
@@ -49,20 +50,19 @@ double resid_func(vector<double> parameters) {
 	return res;
 }
 
-//double resid_func2(vector<double> parameters) {
-//	Fissures f = Fissures();
-//	f.set_parameters(actual_l1, parameters[0], actual_l2, parameters[1]);
-//	f.solve_xi();
-//	double res = 0;
-//	for (size_t i = 0; i < view_points.size(); i++)
-//	{
-//		cx_double cur_u = f.number_field(view_points[i]);
-//		res += pow(cur_u.real() - true_u[i].real(), 2) * 100 + pow(cur_u.imag() - true_u[i].imag(), 2) * 100;
-//	}
-//	return res;
-//}
+double resid_func2(vector<double> parameters) {
+	Fissures f = Fissures();
+	f.set_parameters(actual_l1, parameters[0], actual_l2, parameters[1]);
+	f.solve_xi();
+	double res = 0;
+	for (size_t i = 0; i < view_points.size(); i++)
+	{
+		cx_double cur_u = f.number_field(view_points[i]);
+		res += pow(cur_u.real() - true_u[i].real(), 2) * 100 + pow(cur_u.imag() - true_u[i].imag(), 2) * 100;
+	}
+	return res;
+}
 
-//Создает .csv файл для модели трещин f с заранее заданными параметрами
 void field_grahp(Fissures f, string file_name) {
 	//график для поля
 	f.eval_static_vecs();
@@ -73,7 +73,7 @@ void field_grahp(Fissures f, string file_name) {
 	{
 		u_vals(i) = f.number_field(x(i));
 	}
-	write_to_file(u_vals, f.get_l1(), f.get_d1(), f.get_l2(), f.get_d2(), f.get_k(), file_name);
+	write_to_file(u_vals, f.l1, f.d1, f.l2, f.d2, f.k, file_name);
 }
 
 void four_fields() {
@@ -95,24 +95,23 @@ void four_fields() {
 		std::cerr << "Не удалось открыть файл для записи!" << std::endl;
 		return;
 	}
-	file << f.get_l1() << endl;
+	file << f.l1 << endl;
 	for (size_t i = 0; i < x.size(); i++)
 	{
 		file << f.number_field(x(i)).real() << ';';
 	}
 	file << endl;
 
-	f.set_parameters(0.05, f.get_d1(), f.get_l2(), f.get_d2());
+	f.l1 = 0.05;
 	f.solve_xi();
-	file << f.get_l1() << endl;
+	file << f.l1 << endl;
 	for (size_t i = 0; i < x.size(); i++)
 		file << f.number_field(x(i)).real() << ';';
 	file << endl;
 
-
-	f.set_parameters(0.1, f.get_d1(), f.get_l2(), f.get_d2());
+	f.l1 = 0.1;
 	f.solve_xi();
-	file << f.get_l1() << endl;
+	file << f.l1 << endl;
 	for (size_t i = 0; i < x.size(); i++)
 		file << f.number_field(x(i)).real() << ';';
 	file << endl;
@@ -201,7 +200,7 @@ void Minimize_with_Nelder_Mid(Fissures f, const vector<double> point, const doub
 }
 
 
-void task4(const double l1, const double d1, const double l2, const double d2,
+void task4(const double l1, const double d1, const double l2, const double d2, const double k,
 	const vector<double> floor, const vector<double> roof, const double eps1,
 	const double eps2, const double l,
 	string field_file_name, string report_file_name
@@ -217,7 +216,7 @@ void task4(const double l1, const double d1, const double l2, const double d2,
 	{
 		u_vals(i) = f.number_field(x(i));
 	}
-	write_to_file(u_vals, l1, d1, l2, d2, k, field_file_name);
+	write_to_file(u_vals, f.l1, f.d1, f.l2, f.d2, f.k, field_file_name);
 
 	//cout << "Введите точки наблюдения: ";
 	/*view_points.clear();
@@ -260,7 +259,7 @@ void task4(const double l1, const double d1, const double l2, const double d2,
 	cout << endl;
 	cout << "Значение функции: " << resid_func(res2) << endl;
 
-	/*std::ofstream file(report_file_name, std::ios::app);
+	std::ofstream file(report_file_name, std::ios::app);
 	if (!file.is_open()) {
 		std::cerr << "Не удалось открыть файл для записи!" << std::endl;
 		return;
@@ -294,62 +293,10 @@ void task4(const double l1, const double d1, const double l2, const double d2,
 	file << "Значение функции резистентности на генетическом = " << resid_func(res1) << endl;
 	file << "Значение функции резистентности на Н.-М. = " << resid_func(res2) << endl << endl;
 
-	file.close();*/
+	file.close();
 }
 
-//Функция с веденнием данных по полю смещения
-void minimize_resid_fun() {
-	Fissures f = Fissures();
-	f.eval_static_vecs();
 
-	int point_count = 0;
-	{
-		cout << "Введите количество точек наблюдения: " << endl;
-		cin >> point_count;
-		if (point_count == 0) {
-			cout << "Количество точек должно быть целым числом больше 1" << endl;
-		}
-	} while(point_count < 2)
-
-	view_points.resize(point_count);
-	cout << "Введите точки наблюдения" <<endl;
-	for (size_t i = 0; i < point_count; i++)
-	{
-		cout << "x" << i + 1 << ": ";
-		double a;
-		cin >> a;
-		view_points.push_back(a);
-	}
-
-	true_u.resize(point_count);
-	cout << endl << "Введите значения поля в заданных точках" << endl;
-	for (size_t i = 0; i < point_count; i++)
-	{
-		double a;
-		cout << view_points[i] << ": ";
-		cin >> a;
-		true_u.push_back(a);
-	}
-	cout << "Введите значение частоты k = ";
-	cin >> k;
-	vector<double> roof = { 0.2, 4.0, 0.2, 4.0 };
-	vector<double> floor = { 0.000001, 0.0, 0.000001, 0.0 };
-	double eps1 = 1e-6, eps2 = 1e-10;
-	double l = 0.1;
-	cout << "\nНачало работы генетического алгоритма" << endl;
-	auto gen = Genetic_Alg(resid_func, floor, roof, eps1);
-	auto res1 = gen.genetic_alg();
-	printf("Найденные параметры с помощью генетического алгоритма: %.5f; %.5f; %.5f; %.5f\n",
-		res1[0], res1[1], res1[2], res1[3]);
-	cout << endl;
-	cout << "Значение функции: " << resid_func(res1) << endl;
-	cout << "Начало работы алгоритма Нелдера-Мида" << endl;
-	auto res2 = nelder_mead(resid_func, res1, l, eps2);
-	printf("Найденные параметры: %.5f; %.5f; %.5f; %.5f\n",
-		res2[0], res2[1], res2[2], res2[3]);
-	cout << endl;
-	cout << "Значение функции: " << resid_func(res2) << endl;
-}
 
 int main() {
 	setlocale(LC_ALL, "Russian");
@@ -363,13 +310,11 @@ int main() {
 	f.set_parameters(l1, d1, l2, d2);
 	vector<double> roof = { 0.2, 4.0, 0.2, 4.0 };
 	vector<double> floor = { 0.000001, 0.0, 0.000001, 0.0 };
-	double l = 0.1;
-	k = 5;
-	double eps1 = 0.01, eps2 = 1e-10;
+	double k = 5, l = 0.1;
+	double eps1 = 1e-6, eps2 = 1e-10;
 	view_points = { 0.5, 0.7, 1, 1.3, 1.6, 1.9, 2.3 };
 	
-	
-	task4(l1, d1, l2, d2, floor, roof, eps1, eps2, l,
+	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
 		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
 		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");
 	 
