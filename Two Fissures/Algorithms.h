@@ -32,11 +32,11 @@ vector<double> nelder_mead(const function<double(vector<double>)> f, const vecto
 
 class Genetic_Alg {
 private:
-	const size_t pop_size = 50; //размер попул€ции
+	const size_t pop_size = 20; //размер попул€ции
 	size_t n; //количество генов у одной особи
 	function<double(vector<double>)> f; //текуща€ функци€ поиска экстремума
 	vector<double> x0, x1; //нижн€€ и верхн€€ граница изменени€ значений
-	const size_t max_iter = 500; //максимальное количество итераций
+	const size_t max_iter = 300; //максимальное количество итераций
 	double eps;
 	//дл€ самоадаптации
 	const double d = 0.2, Mm = 0.9;
@@ -44,8 +44,7 @@ private:
 	// мутаци€ по всей границе
 	vector<double> mutation(const vector<double> point, const double fi);  
 
-	vector<double> inversion(vector<double> x, const double fi);
-
+	
 	void mutation_around(vector<double>& x);
 
 	//самоадаптирующийс€

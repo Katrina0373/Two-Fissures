@@ -55,6 +55,8 @@ public:
 	cx_double L_x3_rj(const double r);
 
 	void eval_static_vecs();
+
+	void write_field_to_csv(std::string file_name);
 };
 
 

@@ -303,16 +303,16 @@ int main() {
 	
 	Fissures f = Fissures();
 	double l1, l2, d1, d2;
-	l1 = 0.1;
-	d1 = 0.5;
-	l2 = 0.1;
-	d2 = 1.0;
+	l1 = 0.05;
+	d1 = 1.0;
+	l2 = 0.05;
+	d2 = 2.3;
 	f.set_parameters(l1, d1, l2, d2);
 	vector<double> roof = { 0.2, 4.0, 0.2, 4.0 };
 	vector<double> floor = { 0.000001, 0.0, 0.000001, 0.0 };
 	double k = 5, l = 0.1;
 	double eps1 = 1e-6, eps2 = 1e-10;
-	view_points = { 0.5, 0.7, 1, 1.3, 1.6, 1.9, 2.3 };
+	view_points = { 3, 3.3, 3.6, 4 };
 	
 	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
 		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),

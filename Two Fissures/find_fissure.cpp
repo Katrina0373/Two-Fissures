@@ -334,6 +334,25 @@ void Fissures::eval_static_vecs()
 	fill_u_sigma();
 }
 
+void Fissures::write_field_to_csv(std::string file_name)
+{
+	if (k3_integral.empty())
+		eval_static_vecs();
+
+	if (xi.empty())
+		solve_xi();
+
+	auto x = arma::linspace(0.0, 10.0, 1000);
+	//Вычисляем поле
+	cx_vec u_vals(x.size());
+	for (size_t i = 0; i < x.size(); i++)
+	{
+		u_vals(i) = number_field(x(i));
+	}
+
+
+}
+
 void Fissures::check_parameters()
 {
 	double eps = 1e-7;

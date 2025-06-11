@@ -46,23 +46,6 @@ vector<double> find_ratio_roots(const double k, const  double start, const doubl
     return roots;
 }
 
-double newton_method_ratio(const double x, const double alpha0, const double eps, const double k, int max_iter = 100, double h = 0.001) {
-    double alpha = alpha0;
-
-    for (int i = 0; i < max_iter; i++) {
-        double f_val = RungeKutta1(alpha, 0.0, 0.0, 1.0, x, k);
-        double df_val = (RungeKutta1(alpha + 1e-8, 0.0, 0.0, 1.0, x, k) - f_val) /  1e-8;
-        double delta_alpha = f_val / df_val;
-
-        alpha -= delta_alpha;
-
-        if (abs(delta_alpha) < eps) {
-            return alpha;
-        }
-    }
-    throw runtime_error("Метод Ньютона не сошелся");
-}
-
 // Функция mu(x)
 double mu(const double x) {
     return 1.0 + x * x / 10.0;
