@@ -231,12 +231,9 @@ cx_vec Fissures::solve_xi()
 		B(i) = F1(i);
 		B(i + N) = F2(i);
 	}
-	//cout << A << endl << endl;
-	//cout << B << endl << endl;
 
 	xi = solve(A, B);
 	
-	//cout << xi << endl;
 	return xi;
 }
 
@@ -350,7 +347,25 @@ void Fissures::write_field_to_csv(std::string file_name)
 		u_vals(i) = number_field(x(i));
 	}
 
+	std::ofstream file(file_name);
+	if (!file.is_open()) {
+		std::cerr << "Не удалось открыть файл для записи!" << std::endl;
+		return;
+	}
 
+	file << l1 << endl;
+	file << d1 << endl;
+	file << l2 << endl;
+	file << d2 << endl;
+	file << k << endl;
+
+	for (size_t i = 0; i < u_vals.size(); ++i) {
+		file << u_vals[i];
+		if (i != u_vals.size() - 1) {
+			file << ';';
+		}
+	}
+	file.close();
 }
 
 void Fissures::check_parameters()

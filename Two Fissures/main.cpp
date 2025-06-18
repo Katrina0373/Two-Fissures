@@ -9,30 +9,6 @@ using namespace std;
 
 vector<cx_double> true_u;
 vector<double> view_points;
-double actual_l1, actual_l2;
-
-void write_to_file(cx_vec x, double l1, double d1, double l2, double d2, double k, string file_name) {
-	std::ofstream file(file_name);
-	if (!file.is_open()) {
-		std::cerr << "Не удалось открыть файл для записи!" << std::endl;
-		return;
-	}
-
-	file << l1 << endl;
-	file << d1 << endl;
-	file << l2 << endl;
-	file << d2 << endl;
-	file << k << endl;
-
-	for (size_t i = 0; i < x.size(); ++i) {
-		file << x[i];
-		if (i != x.size() - 1) {
-			file << ';';
-		}
-	}
-	file.close();
-
-}
 
 double resid_func(vector<double> parameters) {
 	if (parameters[0] < 1e-7 || parameters[2] < 1e-7
@@ -48,32 +24,6 @@ double resid_func(vector<double> parameters) {
 		res += pow(cur_u.real() - true_u[i].real(), 2) * 100 + pow(cur_u.imag() - true_u[i].imag(), 2) * 100;
 	}
 	return res;
-}
-
-double resid_func2(vector<double> parameters) {
-	Fissures f = Fissures();
-	f.set_parameters(actual_l1, parameters[0], actual_l2, parameters[1]);
-	f.solve_xi();
-	double res = 0;
-	for (size_t i = 0; i < view_points.size(); i++)
-	{
-		cx_double cur_u = f.number_field(view_points[i]);
-		res += pow(cur_u.real() - true_u[i].real(), 2) * 100 + pow(cur_u.imag() - true_u[i].imag(), 2) * 100;
-	}
-	return res;
-}
-
-void field_grahp(Fissures f, string file_name) {
-	//график для поля
-	f.eval_static_vecs();
-	f.solve_xi();
-	auto x = arma::linspace(0.0, 10.0, 1000);
-	cx_vec u_vals(x.size());
-	for (size_t i = 0; i < x.size(); i++)
-	{
-		u_vals(i) = f.number_field(x(i));
-	}
-	write_to_file(u_vals, f.l1, f.d1, f.l2, f.d2, f.k, file_name);
 }
 
 void four_fields() {
@@ -116,12 +66,6 @@ void four_fields() {
 		file << f.number_field(x(i)).real() << ';';
 	file << endl;
 
-	/*f.l1 = 0.5;
-	f.solve_xi();
-	f.fill_u_sigma();
-	file << f.l1 << endl;
-	for (size_t i = 0; i < x.size(); i++)
-		file << f.number_field(x(i)).real() << ';';*/
 	file.close();
 
 }
@@ -209,15 +153,8 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	Fissures f = Fissures(l1, l2, d1, d2, 20, k);
 	f.eval_static_vecs();
 	f.solve_xi();
-	auto x = arma::linspace(0.0, 10.0, 1000);
-	//Вычисляем поле
-	cx_vec u_vals(x.size());
-	for (size_t i = 0; i < x.size(); i++)
-	{
-		u_vals(i) = f.number_field(x(i));
-	}
-	write_to_file(u_vals, f.l1, f.d1, f.l2, f.d2, f.k, field_file_name);
-
+	f.write_field_to_csv(field_file_name);
+	
 	//cout << "Введите точки наблюдения: ";
 	/*view_points.clear();
 	while (true) {
@@ -232,8 +169,6 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	for (size_t i = 0; i < view_points.size(); i++)
 		true_u[i] = f.number_field(view_points[i]);
 
-	//cout << resid_func({ 0.0998931, 0.499328, 0.100106, 0.999252 }) << endl;
-	//return;
 	//находим с помощью генетического
 	cout << "Начало работы генетического алгоритма" << endl;
 	auto start_time = std::chrono::high_resolution_clock::now();
@@ -306,51 +241,18 @@ int main() {
 	l1 = 0.05;
 	d1 = 1.0;
 	l2 = 0.05;
-	d2 = 2.3;
+	d2 = 2.0;
 	f.set_parameters(l1, d1, l2, d2);
 	vector<double> roof = { 0.2, 4.0, 0.2, 4.0 };
 	vector<double> floor = { 0.000001, 0.0, 0.000001, 0.0 };
 	double k = 5, l = 0.1;
 	double eps1 = 1e-6, eps2 = 1e-10;
-	view_points = { 3, 3.3, 3.6, 4 };
+	view_points = { 0.5, 0.8, 1.1, 1.5 };
 	
 	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
 		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
 		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");
 	 
-	//view_points = { 2.0, 2.7 };
-	
-	
-	/*f.fill_k3_integral();
-	f.fill_sigma2_alpha();
-	f.solve_xi();
-	f.fill_u_sigma();
-	true_u = { f.number_field(view_points[0]), f.number_field(view_points[1]) };
-	for (size_t i = 0; i < 4; i++) {
-		for (size_t j = 0; j < 10; j++)
-		{
-			switch (i)
-			{
-			case 0:
-				l1 = 0.1 + j * 0.01;
-				break;
-			case 1:
-				d1 = 0.5 + j * 0.01;
-				break;
-			case 2:
-				l2 = 0.1 + j * 0.01;
-				break;
-			case 3:
-				d2 = 1 + j * 0.01;
-				break;
-			default:
-				break;
-			}
-			printf("l1 = %.5f, d1 = %.5f, l2 = %.5f, d2 = %.5f, resid_fun = %.5f\n", l1, d1, l2, d2, resid_func({l1, d1, l2, d2}));
-			l1 = 0.1; d1 = 0.5; l2 = 0.1; d2 = 1;
-		}
-	}*/
-    //Minimize_with_Nelder_Mid(f, { 0.056693, 1.23781, 0.126691, 0.72516 }, 1e-8, 0.1);
 
 	return 0;
 }

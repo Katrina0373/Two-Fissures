@@ -4,7 +4,6 @@
 #include <vector>
 #include <math.h>
 #include <armadillo>
-#include <omp.h>
 #include <map>
 
 using std::complex; using arma::mat; using arma::vec; using arma::cx_vec; using arma::cx_double;
