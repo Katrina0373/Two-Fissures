@@ -32,7 +32,7 @@ vector<double> nelder_mead(const function<double(vector<double>)> f, const vecto
 
 class Genetic_Alg {
 private:
-	const size_t pop_size = 20; //размер попул€ции
+	const size_t pop_size = 30; //размер попул€ции
 	size_t n; //количество генов у одной особи
 	function<double(vector<double>)> f; //текуща€ функци€ поиска экстремума
 	vector<double> x0, x1; //нижн€€ и верхн€€ граница изменени€ значений

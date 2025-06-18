@@ -13,6 +13,7 @@ arma::cx_vec Fissures::roots_sigma2;
 arma::cx_vec Fissures::sigma1, Fissures::sigma2, Fissures::u1, Fissures::u2;
 double Fissures::k30;
 size_t Fissures::N1;
+
 double (*mu)(double) = { [](double x) {return
 		1 + std::pow(x, 2) / 10; } };
 
@@ -97,36 +98,9 @@ double Fissures::k3reg(const double x1, const double x2) {
 		step += h;
 	}
 
-	//cout << 2 * h * integral << endl;
 	return 2 * h * integral;
 }
 
-double Fissures::k3reg1(const double y1, const double y2) {
-
-	double width = alphaM / k3_integral.size();
-
-	auto Dij = [y1, y2, this](double alpha, int i) {
-		
-		return k3_integral[i] * (sin(alpha * y1) - sin(alpha * y2));
-	};
-
-	double simpson_integral = 0;
-	
-	int start = 0;
-	double x1 = width / 2 + start * width;
-	double x2 = width / 2 + (start + 1) * width;
-	double x3 = (x2 - x2) / 2;
-
-	for (int step = start; step < k3_integral.size(); step++) {
-		simpson_integral += width / 6.0 * (Dij(x1, step) + 4.0 * Dij(x3, step) + Dij(x2, step + 1));
-		x1 += width;
-		x2 += width;
-		x3 += width;
-	}
-
-	//cout << simpson_integral << endl;
-	return simpson_integral;
-}
 
 //x = 1
 double Fissures::k3(const double alpha) {
@@ -152,7 +126,7 @@ void Fissures::fill_F(cx_vec& F1, cx_vec& F2) {
 				sum += exp(roots_sigma2(i) * x * 1.i) / sigma2_alpha(N1 + i);
 			else 
 				sum += exp(roots_sigma2(i) * -x * 1.i) / sigma2_alpha(i);
-			//cout << sum << endl;
+			
 		}
 		
 		return sign * p * 2 * datum::pi * sum * 1.i;
@@ -189,32 +163,12 @@ cx_vec Fissures::solve_xi()
 	cx_vec F1, F2;
 	mat Areg11, Areg12, Areg21, Areg22;
 
-	//auto start_time = std::chrono::high_resolution_clock::now();
 	fill_Ac(Ac11, Ac21, Ac12);
-	/*auto end_time = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> duration = end_time - start_time;
-	std::cout << "Время Ac: " << duration.count() << std::endl;
-	start_time = std::chrono::high_resolution_clock::now();*/
-	
-	
+		
 	fill_Areg(Areg11, Areg12, Areg21, Areg22);
 	
-	//end_time = std::chrono::high_resolution_clock::now();
-	//duration = end_time - start_time;
-	//std::cout << "Время Areg: " << duration.count() << std::endl;
-
-	//start_time = std::chrono::high_resolution_clock::now();	
-	/*end_time = std::chrono::high_resolution_clock::now();
-	duration = end_time - start_time;
-	std::cout << "Время Areg: " << duration.count() << std::endl;
-
-	start_time = std::chrono::high_resolution_clock::now();
-	*/
 	fill_F(F1, F2);
 
-	/*end_time = std::chrono::high_resolution_clock::now();
-	duration = end_time - start_time;
-	std::cout << "Время F: " << duration.count() << std::endl << std::endl;*/
 
 	cx_mat A(2*N, 2*N, fill::zeros);
 	cx_vec B(2*N);
@@ -233,7 +187,7 @@ cx_vec Fissures::solve_xi()
 	}
 
 	xi = solve(A, B);
-	
+	//cout << xi << endl;
 	return xi;
 }
 
@@ -390,7 +344,7 @@ Fissures::Fissures()
 	fill_t();
 }
 
-Fissures::Fissures(double l1, double l2, double d1, double d2, int N, double k, int p)
+Fissures::Fissures(double l1, double d1, double l2, double d2, int N, double k, int p)
 {
 	if (N == 0)
 		throw("The number of nodes must be greater than 0");

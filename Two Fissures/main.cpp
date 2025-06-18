@@ -150,7 +150,7 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	string field_file_name, string report_file_name
 ) {
 
-	Fissures f = Fissures(l1, l2, d1, d2, 20, k);
+	Fissures f = Fissures(l1, d1, l2, d2, 20, k);
 	f.eval_static_vecs();
 	f.solve_xi();
 	f.write_field_to_csv(field_file_name);
@@ -238,21 +238,22 @@ int main() {
 	
 	Fissures f = Fissures();
 	double l1, l2, d1, d2;
-	l1 = 0.05;
-	d1 = 1.0;
-	l2 = 0.05;
-	d2 = 2.0;
+	l1 = 0.1;
+	d1 = 0.5;
+	l2 = 0.01;
+	d2 = 1.0;
 	f.set_parameters(l1, d1, l2, d2);
 	vector<double> roof = { 0.2, 4.0, 0.2, 4.0 };
 	vector<double> floor = { 0.000001, 0.0, 0.000001, 0.0 };
 	double k = 5, l = 0.1;
 	double eps1 = 1e-6, eps2 = 1e-10;
-	view_points = { 0.5, 0.8, 1.1, 1.5 };
+	view_points = { 2, 2.3, 2.6, 3, 3.4, 3.8, 4, 4.2 };
 	
 	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
 		std::format("D:\\VS Projects\\Two Fissures\\results\\task4\\k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
 		"D:\\VS Projects\\Two Fissures\\results\\report4.0.txt");
 	 
 
+	//Minimize_with_Nelder_Mid(f, { 0.0977921, 0.525886, 0.0223358, 1.99891 }, eps2, 0.1);
 	return 0;
 }

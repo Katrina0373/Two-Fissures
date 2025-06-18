@@ -22,10 +22,10 @@ public:
 	static cx_vec sigma2_alpha;
 	//äëÿ ìàòğèöû Areg
 	static std::vector<double> k3_integral;
-	double alphaM = 400;
+	double alphaM = 350;
 
 	Fissures();
-	Fissures(double l1, double l2, double d1, double d2, int N = 20, double k = 5, int p = 1);
+	Fissures(double l1, double d1, double l2, double d2, int N = 20, double k = 5, int p = 1);
 	void set_parameters(double l1, double d1, double l2, double d2);
 
 	//==========================ÏĞßÌÀß ÇÀÄÀ×À============================
@@ -37,7 +37,6 @@ public:
 	void fill_F(cx_vec& F1, cx_vec& F2);
 	void fill_k3_integral();
 	double k3reg(const double x1, const double x2);
-	double k3reg1(const double x1,const double x2);
 	double k3(const double alpha);
 
 	cx_vec solve_xi();

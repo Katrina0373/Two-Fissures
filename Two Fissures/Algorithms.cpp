@@ -147,27 +147,6 @@ void Genetic_Alg::crossover(vector<vector<double>>& p,	const int iter, vector<do
 		}
 		double child_fi = f(child);
 
-		//выбираем кто останется в новом поколении
-		/*if (child_fi < fi[p1_ind]) {
-			if (child_fi < fi[p2_ind]) {
-				new_p[i] = child;
-				new_fi[i] = child_fi;
-			}
-			else {
-				new_p[i] = p[p2_ind];
-				new_fi[i] = fi[p2_ind];
-			}
-		}
-		else {
-			if (fi[p1_ind] < fi[p2_ind]) {
-				new_p[i] = p[p1_ind];
-				new_fi[i] = fi[p1_ind];
-			}
-			else {
-				new_p[i] = p[p2_ind];
-				new_fi[i] = fi[p2_ind];
-			}
-		}*/
 		new_p[i] = child;
 		new_fi[i] = child_fi;
 	}
