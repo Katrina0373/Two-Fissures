@@ -12,6 +12,7 @@ arma::cx_vec Fissures::sigma2_alpha;
 arma::cx_vec Fissures::roots_sigma2;
 arma::cx_vec Fissures::sigma1, Fissures::sigma2, Fissures::u1, Fissures::u2;
 double Fissures::k30;
+double Fissures::k;
 size_t Fissures::N1;
 
 double (*mu)(double) = { [](double x) {return
@@ -340,7 +341,7 @@ Fissures::Fissures()
 {
 	l1 = 0.1; l2 = 0.1;
 	d1 = 0.5; d2 = 1;
-	N = 20; k = 5; p = 1;
+	N = 20; p = 1;
 	fill_t();
 }
 

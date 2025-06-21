@@ -66,6 +66,10 @@ vector<double> Genetic_Alg::intermediate_recombination(const vector<double>& p1,
 	{
 		double alpha = random_state0(-0.25, 1.25);
 		x[i] = p1[i] + alpha * (p2[i] - p1[i]);
+		if (x[i] < x0[i])
+			x[i] = x0[i];
+		else if (x[i] > x1[i])
+			x[i] = x1[i];
 	}
 	return x;
 }
