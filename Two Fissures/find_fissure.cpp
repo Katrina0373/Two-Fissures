@@ -82,8 +82,6 @@ void Fissures::fill_Areg(mat& A11, mat& A21, mat& A12, mat& A22) {
 	}
 }
 
-
-
 double Fissures::k3reg(const double x1, const double x2) {
 	
 	double h = alphaM / k3_integral.size();
@@ -142,6 +140,7 @@ void Fissures::fill_F(cx_vec& F1, cx_vec& F2) {
 
  }
 
+//первая часть подынтегральной функции
 void Fissures::fill_k3_integral()
 {
 	double h = 0.1;
@@ -158,6 +157,7 @@ void Fissures::fill_k3_integral()
 
 }
 
+//функция расслоения
 cx_vec Fissures::solve_xi()
 {
 	mat Ac11, Ac12, Ac21;
@@ -197,6 +197,7 @@ double Fissures::solve_k30() {
 	return k3(600) / 600;
 }
 
+//поле смещения
 cx_double Fissures::number_field(const double x)
 {
 	cx_double sum1 = 0, sum2 = 0;
@@ -210,8 +211,7 @@ cx_double Fissures::number_field(const double x)
 	return (l1 * sum1 + l2 * sum2) / (datum::pi * N);
 }
 
-//учитывая что количество корней счётно и достаточно мало, а обращение к задачам Коши будет частым, 
-// то лучше создать под них собственные массивы
+//значения U и Sigma в корнях
 void Fissures::fill_u_sigma()
 {
 	sigma1.resize(2 * N1);
@@ -238,7 +238,7 @@ void Fissures::fill_u_sigma()
 	}
 
 }
-//для всех моделей с одинаковым k значения sigma2_alpha одни и те же
+
 void Fissures::fill_sigma2_alpha() {
 	vec roots_sigma2re(find_ratio_roots(k, 0, 100, 0.1, 1.0e-8, 1000));
 	roots_sigma2.resize(roots_sigma2re.size());

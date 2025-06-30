@@ -242,6 +242,8 @@ cx_double dot(const cx_vec& a, const cx_vec& b) {
     return result;
 }
 
+
+//для решения СЛАУ(возможно можно вообще избавиться от Armadillo)
 cx_vec solveMinResiduals(const cx_mat& A, const cx_vec& b, int maxIter, double tol) {
     int n = b.size();
     cx_vec x(n, fill::zeros); // начальное приближение

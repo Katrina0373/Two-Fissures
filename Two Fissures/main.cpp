@@ -240,10 +240,10 @@ int main() {
 	
 	Fissures f = Fissures();
 	double l1, l2, d1, d2;
-	l1 = 0.1;
+	l1 = 0.05;
 	d1 = 3.5;
-	l2 = 0.1;
-	d2 = 3.0;
+	l2 = 0.05;
+	d2 = 2.0;
 	f.set_parameters(l1, d1, l2, d2);
 	vector<double> roof = { 0.2, 10.0, 0.2, 10.0 };
 	vector<double> floor = { 0.000001, 0.0, 0.000001, 0.0 };

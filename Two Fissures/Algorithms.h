@@ -22,7 +22,7 @@ using std::vector;
 /// <param name="l">- длина симплекса</param>
 /// <param name="alpha">- отражение</param>
 /// <param name="gamma">- растежение</param>
-/// <param name="rho"></param>
+/// <param name="rho">- сужение</param>
 /// <param name="sigma">- сжатие</param>
 /// <param name="max_iter">- максимальное количество итераций</param>
 /// <returns>точка минимума функции</returns>
