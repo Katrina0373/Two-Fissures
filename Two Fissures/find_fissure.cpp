@@ -323,6 +323,34 @@ void Fissures::write_field_to_csv(std::string file_name)
 	file.close();
 }
 
+void Fissures::write_bundle_fun_to_csv(std::string file_name)
+{
+	if (k3_integral.empty())
+		eval_static_vecs();
+
+	solve_xi();
+
+	std::ofstream file(file_name);
+	if (!file.is_open()) {
+		std::cerr << "Не удалось открыть файл для записи!" << std::endl;
+		return;
+	}
+
+	file << l1 << endl;
+	file << d1 << endl;
+	file << l2 << endl;
+	file << d2 << endl;
+	file << k << endl;
+
+	for (size_t i = 0; i < xi.size(); ++i) {
+		file << xi[i];
+		if (i != xi.size() - 1) {
+			file << ';';
+		}
+	}
+	file.close();
+}
+
 void Fissures::check_parameters()
 {
 	double eps = 1e-7;

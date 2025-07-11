@@ -155,6 +155,7 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 	Fissures f = Fissures(l1, d1, l2, d2, 20, k);
 	f.eval_static_vecs();
 	f.solve_xi();
+	f.write_bundle_fun_to_csv(std::format("../results/данные/функция расслоения/k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2));
 	f.write_field_to_csv(field_file_name);
 	
 	//cout << "Введите точки наблюдения: ";
@@ -238,23 +239,24 @@ void task4(const double l1, const double d1, const double l2, const double d2, c
 int main() {
 	setlocale(LC_ALL, "Russian");
 	
-	Fissures f = Fissures();
 	double l1, l2, d1, d2;
 	l1 = 0.05;
 	d1 = 3.5;
-	l2 = 0.05;
-	d2 = 2.0;
-	f.set_parameters(l1, d1, l2, d2);
+	l2 = 0.1;
+	d2 = 1.0;
 	vector<double> roof = { 0.2, 10.0, 0.2, 10.0 };
 	vector<double> floor = { 0.000001, 0.0, 0.000001, 0.0 };
 	double k = 5, l = 0.1;
 	double eps1 = 1e-6, eps2 = 1e-10;
 	view_points = { 2, 2.4, 2.7, 3, 3.4, 3.7, 4 };
-	
+
+	Fissures f = Fissures(l1, d1, l2, d2, 20, k);
+
 	task4(l1, d1, l2, d2, k, floor, roof, eps1, eps2, l,
-		std::format("../results/поле смещения/данные/k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
+		std::format("../results/данные/поле смещения/k{}l1{}d1{}l2{}d2{}.csv", k, l1, d1, l2, d2),
 		"../results/report4.0.txt");
 	 
+	
 
 	//Minimize_with_Nelder_Mid(f, { 0.0977921, 0.525886, 0.0223358, 1.99891 }, eps2, 0.1);
 	return 0;

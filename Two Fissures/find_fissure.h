@@ -22,8 +22,10 @@ public:
 	cx_double number_field(const double x);
 	//заполнение статичных векторов
 	void eval_static_vecs();
-	//запись в указанный файл данные поля смещения
+	//запись в указанный файл данных поля смещения
 	void write_field_to_csv(std::string file_name);
+	//запись в указанный файл данных функции расслоения
+	void write_bundle_fun_to_csv(std::string file_name);
 
 private:
 	double l1, d1, l2, d2;
